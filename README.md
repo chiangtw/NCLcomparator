@@ -7,7 +7,7 @@
 
 The NCLcomparator program, document, and test set can be downloaded from our FTP site: ftp://treeslab1.genomics.sinica.edu.tw/NCLcomparator or GitHub: https://github.com/TreesLab/NCLcomparator.
 
-**1. System requirements**  
+**1. System requirements**  <br>
      NCLcomparator runs under Linux-like environment (i.e. Bio-Linux, also see http://environmentalomics.org/bio-linux/) with at least 30 GB RAM.
      
 **2. Installation** 
