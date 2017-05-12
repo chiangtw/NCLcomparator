@@ -17,7 +17,8 @@ The NCLcomparator program, document, and test set can be downloaded from our FTP
      $ chmod +x NCLcomparator.sh
      $ chmod +x /bin/*
 
-**3. External tools**
+**3. External tools*
+==============================
       * (1)	bedtools (http://bedtools.readthedocs.io/en/latest/)
       * (2)	STAR (https://github.com/alexdobin/STAR)
       * (3)	RSEM (https://github.com/deweylab/RSEM)
