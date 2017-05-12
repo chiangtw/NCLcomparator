@@ -47,13 +47,12 @@ The NCLcomparator program, document, and test set can be downloaded from our FTP
 **4. Preparation** <br>
      (1)	Genome and its annotation, which can be download from the GENCODE website (http://www.gencodegenes.org/) or ensembl FTP   (http://www.ensembl.org/info/data/ftp/index.html). 
           Given Human as an example, go to ensembl FTP (http://www.ensembl.org/info/data/ftp/index.html) to download human genome and annotation.
-
+      ```
          $ wget ftp://ftp.ensembl.org/pub/release88/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
          $ wget ftp://ftp.ensembl.org/pub/release88/gtf/homo_sapiens/Homo_sapiens.GRCh38.88.gtf.gz
          $ gunzip Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
          $ gunzip Homo_sapiens.GRCh38.88.gtf.gz
-     
-     
+      ```
      (2)	(optional) Synonymous Constraint elements (SCE), which can be download from (http://compbio.mit.edu/SCE/)
 
 **5. Building STAR and RSEMindex**
