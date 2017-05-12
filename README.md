@@ -18,10 +18,10 @@ The NCLcomparator program, document, and test set can be downloaded from our FTP
      $ chmod +x /bin/*
 
 **3. External tools** <br>
-     (1)	bedtools (http://bedtools.readthedocs.io/en/latest/)
-     (2)	STAR (https://github.com/alexdobin/STAR)
-     (3)	RSEM (https://github.com/deweylab/RSEM)
-     (4)	R (https://www.r-project.org/)
+     (1)	bedtools (http://bedtools.readthedocs.io/en/latest/) <br>
+     (2)	STAR (https://github.com/alexdobin/STAR) <br>
+     (3)	RSEM (https://github.com/deweylab/RSEM) <br>
+     (4)	R (https://www.r-project.org/)<br>
 
      ## Get latest bedtools source from releases and install it 
      $ wget https://github.com/arq5x/bedtools2/releases/download/v2.25.0/bedtools2.25.0.tar.gz
@@ -44,8 +44,7 @@ The NCLcomparator program, document, and test set can be downloaded from our FTP
      $ sudo apt-get update
      $ sudo apt-get install r-base
 
-**4. Preparation**
-
+**4. Preparation** <br>
      (1)	Genome and its annotation, which can be download from the GENCODE website (http://www.gencodegenes.org/) or ensembl FTP   (http://www.ensembl.org/info/data/ftp/index.html). 
           Given Human as an example, go to ensembl FTP (http://www.ensembl.org/info/data/ftp/index.html) to download human genome and annotation.
 
@@ -53,7 +52,8 @@ The NCLcomparator program, document, and test set can be downloaded from our FTP
          $ wget ftp://ftp.ensembl.org/pub/release88/gtf/homo_sapiens/Homo_sapiens.GRCh38.88.gtf.gz
          $ gunzip Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
          $ gunzip Homo_sapiens.GRCh38.88.gtf.gz
-
+     
+     
      (2)	(optional) Synonymous Constraint elements (SCE), which can be download from (http://compbio.mit.edu/SCE/)
 
 **5. Building STAR and RSEMindex**
