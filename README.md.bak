@@ -18,10 +18,10 @@ The NCLcomparator program, document, and test set can be downloaded from our FTP
      $ chmod +x /bin/*
 
 **3. External tools**
-      * (1)	bedtools (http://bedtools.readthedocs.io/en/latest/)
-      * (2)	STAR (https://github.com/alexdobin/STAR)
-      * (3)	RSEM (https://github.com/deweylab/RSEM)
-      * (4)	R (https://www.r-project.org/)
+      *(1)	bedtools (http://bedtools.readthedocs.io/en/latest/)
+      *(2)	STAR (https://github.com/alexdobin/STAR)
+      *(3)	RSEM (https://github.com/deweylab/RSEM)
+      *(4)	R (https://www.r-project.org/)
 
      ## Get latest bedtools source from releases and install it 
      $ wget https://github.com/arq5x/bedtools2/releases/download/v2.25.0/bedtools2.25.0.tar.gz
