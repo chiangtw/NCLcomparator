@@ -55,7 +55,8 @@ The NCLcomparator program, document, and test set can be downloaded from our FTP
  
  (2)	(optional) Synonymous Constraint elements (SCE), which can be download from (http://compbio.mit.edu/SCE/)
 
-### 5. Building STAR and RSEMindex
+ (3) Building STAR and RSEM index  
+ 
 The following steps are to generate the index files before running NCLcomparator tool. 
 
     $ mkdir STAR_RSEM_index
@@ -65,6 +66,16 @@ The following steps are to generate the index files before running NCLcomparator
 
 The STAR and RSEM index of the genome hg38 and the annotation ensemble 85 is prepared and can be downloaded in our FTP. 
 
+  (4) Installation of R packages in R console
+  
+      $ R
+      $ install.packages("ggplot2")
+      $ install.packages("grodExtra")
+      $ Would you like to use a personal library instead?  (y/n) y
+      $ Would you like to create a personal library~/R/x86_64-pc-linux-gnu-library/3.2 to install packages into?  (y/n) y
+      $ q()
+      $ Save workspace image? [y/n/c]: n
+          
 ### 6. Execution of NCLcomparator
     
  ###### Usage:
