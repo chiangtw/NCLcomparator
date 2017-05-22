@@ -123,6 +123,22 @@ The column formats of outputs are described as follow:
 | (9) | Circular tool2	(Yes: 1; No: 0) |
 |(10) | ..|
 
+##### interMerged.result (tab-delimited text file)
+
+|No. of columun | Description |
+|---------------|-------------|
+| (1) | Chromosome name of the donor side (5' ss) |
+| (2) | Junction coordination of the donor side |
+| (3) | Strand of the donor side |
+| (4) | Chromosome name of the acceptor side (3' ss) |
+| (5) | Junction coordinate of the acceptor side |
+| (6) | Strand of the acceptor side |
+| (7) | Gene name of the donor side |
+| (8) | Gene nqamae of the acceptor side |
+| (9) | Fusion tool1 (Yes: 1; No: 0) |
+| (10) | Fusion tool2	(Yes: 1; No: 0) |
+|(11) | ..|
+
 
 In comparison folder, the intra or inter folder are created for adjusting the positions of NCL detection tools to the positions of exon boundary.
 ##### toolName.circEB or toolName.fusionEB (tab-delimited text file)
