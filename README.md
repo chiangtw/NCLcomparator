@@ -81,9 +81,10 @@ The STAR and RSEM index of the genome hg38 and the annotation ensemble 85 is pre
 ###### -sce/--SCE (optional) /path/to/SCE.bed
 
 ### 7. Input format of NCL events
-  The outputs of NCL detection tools are required to modify as 5-col format, which includes the positons of donor/acceptor sides and the number of junction reads. Intra-NCL tools・ modified 5-col format results are gathered into a folder, and inter-NCL tools・ modified 5-col format results are gathered into another folder. <br>
+The outputs of NCL detection tools are required to modify as 5-col format, which includes the positons of donor/acceptor sides and the number of junction reads. Intra-NCL tools・ modified 5-col format results are gathered into a folder, and inter-NCL tools・ modified 5-col format results are gathered into another folder.  
   
-     Given a 5-col result, CIRCexplorer2.5col (tab-delimited text file), as an example,<br>
+Given a 5-col result, CIRCexplorer2.5col (tab-delimited text file), as an example,  
+
      chr1	945176	chr1	945517	1
      chr1	955922	chr1	956013	1
      chr1	955922	chr1	957273	5
