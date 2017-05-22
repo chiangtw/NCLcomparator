@@ -61,22 +61,24 @@ The following steps are to generate the index files before running NCLcomparator
     $ mkdir STAR_RSEM_index
     $ cd STAR_RSEM_index
     $ STAR --runMode genomeGenerate --runThreadN 10 --genomeDir . --genomeFastaFiles /path/to/Homo_sapiens.GRCh38.dna.primary_assembly.fa
-     $ rsem-prepare-reference --gtf /path/to/Homo_sapiens.GRCh38.85.gtf --star -p 10 /path/to/Homo_sapiens.GRCh38.dna.primary_assembly.fa RSEM
+    $ rsem-prepare-reference --gtf /path/to/Homo_sapiens.GRCh38.85.gtf --star -p 10 /path/to/Homo_sapiens.GRCh38.dna.primary_assembly.fa RSEM
 
 The STAR and RSEM index of the genome hg38 and the annotation ensemble 85 is prepared and can be downloaded in our FTP. 
 
 **6. Execution of NCLcomparator**
     
-     Usage:
+ ###### Usage:
+ 
      $ ./NCLcomparator.sh -gtf [annotation GTF file] -thread [number of thread] -read1[read1 fastq.gz] -read2 [read2 fastq.gz] -index [STAR_RSEM index folder] -intra [circular result folder] -inter [fusion result folder] -sce [SCE bed file]
 
-     An example: 
+ ###### An example: 
+ 
      $ ./NCLcomparator.sh -gtf Homo_sapiens.GRCh38.85.gtf -intra /path/to/intra -inter /path/to/inter -sce SCE_hg38.bed -read1 GM12878_1.fastq.gz -read2 GM12878_2.fastq.gz -index /path/to/STAR_RSEM_index
 
-     The basic options to run a job as follow:
-     -intra/--circular /path/to/NCL-intra folder
-     -inter/--fusion (optional) /path/to/NCL-inter folder
-     -sce/--SCE (optional) /path/to/SCE.bed
+###### The basic options to run a job as follow:
+###### -intra/--circular /path/to/NCL-intra folder
+###### -inter/--fusion (optional) /path/to/NCL-inter folder
+###### -sce/--SCE (optional) /path/to/SCE.bed
 
 **7. Input format of NCL events**
      The outputs of NCL detection tools are required to modify as 5-col format, which includes the positons of donor/acceptor sides and the number of junction reads. Intra-NCL tools・ modified 5-col format results are gathered into a folder, and inter-NCL tools・ modified 5-col format results are gathered into another folder. 
