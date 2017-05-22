@@ -23,24 +23,24 @@ The NCLcomparator program, document, and test set can be downloaded from our FTP
      (3)	RSEM (https://github.com/deweylab/RSEM) <br>
      (4)	R (https://www.r-project.org/)<br>
 
-     ## Get latest bedtools source from releases and install it 
+##### Get latest bedtools source from releases and install it 
      $ wget https://github.com/arq5x/bedtools2/releases/download/v2.25.0/bedtools2.25.0.tar.gz
      $ tar -zxvf bedtools-2.25.0.tar.gz
      $ cd bedtools2
      $ make
      $ cp ./bin/ /usr/local/bin
-     ## Get latest STAR source from releases and install it 
+##### Get latest STAR source from releases and install it 
      $ wget https://github.com/alexdobin/STAR/archive/2.5.3a.tar.gz
      $ tar -xzf 2.5.3a.tar.gz
      $ cd STAR-2.5.3a
      $ cp bin/Linux_x86_64_static/STAR /usr/local/bin
-     ## Get latest RSEM source code and install it #
+###### Get latest RSEM source code and install it #
      $ wget https://github.com/deweylab/RSEM/archive/v1.3.0.tar.gz
      $ tar -xzf v1.3.0.tar.gz
      $ cd RSEM-1.3.0
      $ make
      $ make ebseq
-     ## Get R in Ubuntu environment
+###### Get R in Ubuntu environment
      $ sudo apt-get update
      $ sudo apt-get install r-base
 
