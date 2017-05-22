@@ -55,15 +55,15 @@ The NCLcomparator program, document, and test set can be downloaded from our FTP
  
  (2)	(optional) Synonymous Constraint elements (SCE), which can be download from (http://compbio.mit.edu/SCE/)
 
-**5. Building STAR and RSEMindex**
-     The following steps are to generate the index files before running NCLcomparator tool.
-     
-     $ mkdir STAR_RSEM_index
-     $ cd STAR_RSEM_index
-     $ STAR --runMode genomeGenerate --runThreadN 10 --genomeDir . --genomeFastaFiles /path/to/Homo_sapiens.GRCh38.dna.primary_assembly.fa
+**5. Building STAR and RSEMindex**<br>
+The following steps are to generate the index files before running NCLcomparator tool. 
+
+    $ mkdir STAR_RSEM_index
+    $ cd STAR_RSEM_index
+    $ STAR --runMode genomeGenerate --runThreadN 10 --genomeDir . --genomeFastaFiles /path/to/Homo_sapiens.GRCh38.dna.primary_assembly.fa
      $ rsem-prepare-reference --gtf /path/to/Homo_sapiens.GRCh38.85.gtf --star -p 10 /path/to/Homo_sapiens.GRCh38.dna.primary_assembly.fa RSEM
 
-     The STAR and RSEM index of the genome hg38 and the annotation ensemble 85 is prepared and can be downloaded in our FTP. 
+The STAR and RSEM index of the genome hg38 and the annotation ensemble 85 is prepared and can be downloaded in our FTP. 
 
 **6. Execution of NCLcomparator**
     
