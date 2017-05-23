@@ -36,6 +36,10 @@ case $key in
      SCE=$2
      shift
      ;;
+     -o|--outputName)
+     OPN=$2
+     shift
+     ;;
      *)
 
 esac
@@ -46,7 +50,7 @@ done
 
 if [[ -z "$geneGTF" ]]; then
    echo "Usage:"
-   echo "./NCLcomparator.sh -gtf [annotation gtf file] -thread [number of thread] -index [STAR_RSEM_index folder] -read1 [read1 fastq.gz file] -read2 [read2 fastq.gz file]  -intra [circular results folder] -inter [fusion results folder] -sce [sce bed file] "
+   echo "./NCLcomparator.sh -gtf [annotation gtf file] -thread [number of thread] -index [STAR_RSEM_index folder] -read1 [read1 fastq.gz file] -read2 [read2 fastq.gz file]  -intra [circular results folder] -inter [fusion results folder] -sce [sce bed file] -o [ output Name] "
    echo ""
    echo "ERROR: no annotation gtf file !"
    echo ""
@@ -55,7 +59,7 @@ fi
 
 if [[ -z "$SRindex" ]]; then
    echo "Usage:"
-   echo "./NCLcomparator.sh -gtf [annotation gtf file] -thread [number of thread] -index [STAR_RSEM_index folder] -read1 [read1 fastq.gz file] -read2 [read2 fastq.gz file]  -intra [circular results folder] -inter [fusion results folder] -sce [sce bed file] "
+   echo "./NCLcomparator.sh -gtf [annotation gtf file] -thread [number of thread] -index [STAR_RSEM_index folder] -read1 [read1 fastq.gz file] -read2 [read2 fastq.gz file]  -intra [circular results folder] -inter [fusion results folder] -sce [sce bed file] -o [ output Name] "
    echo ""
    echo "ERROR: no STAR_RSEM_index folder !"
    echo ""
@@ -64,7 +68,7 @@ fi
 
 if [[ -z "$read1" ]]; then
    echo "Usage:"
-   echo "./NCLcomparator.sh -gtf [annotation gtf file] -thread [number of thread] -index [STAR_RSEM_index folder] -read1 [read1 fastq.gz file] -read2 [read2 fastq.gz file]  -intra [circular results folder] -inter [fusion results folder] -sce [sce bed file] "
+   echo "./NCLcomparator.sh -gtf [annotation gtf file] -thread [number of thread] -index [STAR_RSEM_index folder] -read1 [read1 fastq.gz file] -read2 [read2 fastq.gz file]  -intra [circular results folder] -inter [fusion results folder] -sce [sce bed file] -o [ output Name] "
    echo ""
    echo "ERROR: no read1 file !"
    echo ""
@@ -73,37 +77,44 @@ fi
 
 if [[ -z "$read2" ]]; then
    echo "Usage:"
-   echo "./NCLcomparator.sh -gtf [annotation gtf file] -thread [number of thread] -index [STAR_RSEM_index folder] -read1 [read1 fastq.gz file] -read2 [read2 fastq.gz file]  -intra [circular results folder] -inter [fusion results folder] -sce [sce bed file] "
+   echo "./NCLcomparator.sh -gtf [annotation gtf file] -thread [number of thread] -index [STAR_RSEM_index folder] -read1 [read1 fastq.gz file] -read2 [read2 fastq.gz file]  -intra [circular results folder] -inter [fusion results folder] -sce [sce bed file] -o [ output Name] "
    echo ""
    echo "ERROR: no read2 file !"
    echo ""
    exit
 fi
 
-if [[-z "$Thread"]]; then
+
+if [[ -z "$Thread" ]]; then
    Thread=6
 fi
 
+if [[ -z "$OPN" ]]; then
+   OPN=$(echo "out")
+fi
 
 BASEDIR=$(dirname $(readlink -f "$0"))
+BASEDIR1=$(pwd)
 
-rm -r -f $BASEDIR\/STAR_RSEM_out
-mkdir $BASEDIR\/STAR_RSEM_out
-cd $BASEDIR\/STAR_RSEM_out
+
+rm -r -f $BASEDIR1\/$OPN
+mkdir $BASEDIR1\/$OPN
+mkdir $BASEDIR1\/$OPN\/STAR_RSEM_out
+cd $BASEDIR1\/$OPN\/STAR_RSEM_out
 STAR --chimSegmentMin 10 --runThreadN $Thread --genomeDir $SRindex --readFilesIn $read1 $read2 --readFilesCommand zcat --outSAMtype BAM Unsorted --quantMode TranscriptomeSAM
 rm -r -f Aligned.out.bam
 rsem-calculate-expression -p $Thread --paired-end --bam Aligned.toTranscriptome.out.bam $SRindex\/RSEM RSEMout
 
-totalRead=$(cat $BASEDIR\/STAR_RSEM_out\/Log.final.out | grep 'Number of input reads' | awk '{print $6}')
-UMRead=$(cat $BASEDIR\/STAR_RSEM_out\/Log.final.out | grep 'Uniquely mapped reads number'| awk '{print $6}')
+totalRead=$(cat $BASEDIR1\/$OPN\/STAR_RSEM_out\/Log.final.out | grep 'Number of input reads' | awk '{print $6}')
+UMRead=$(cat $BASEDIR1\/$OPN\/STAR_RSEM_out\/Log.final.out | grep 'Uniquely mapped reads number'| awk '{print $6}')
 
-rm -r -f $BASEDIR\/comparison
-mkdir $BASEDIR\/comparison
+rm -r -f $BASEDIR1\/$OPN\/comparison
+mkdir $BASEDIR1\/$OPN\/comparison
 
 ## build exon boundary ##
 echo ""
 echo "Step: building exon boundary"
-cd $BASEDIR\/comparison
+cd $BASEDIR1\/$OPN\/comparison
 
 chrCheck=$(cat $geneGTF | grep -v "#" | head -1 | awk '{print $1}' | grep 'chr')
 
@@ -122,19 +133,19 @@ fi
 
 cat $geneGTF | awk '{for(i=1;i<=NF;i++) if($i=="gene_name"){print  $(i+1) "\t" $0} }'  | awk '{for(i=1;i<=NF;i++) if($i=="gene_id") {print $(i+1) "\t" $0}}' | awk '{print $1 "\t" $2}' | sed 's/;//g' | sed 's/"//g' | sort  | uniq > ENSG_GeneID_convert.txt
 
-chrCheck=$(cat $BASEDIR\/STAR_RSEM_out\/SJ.out.tab | head -10 | grep 'chr')
+chrCheck=$(cat $BASEDIR1\/$OPN\/STAR_RSEM_out\/SJ.out.tab | head -10 | grep 'chr')
 if [[ -n "$chrCheck" ]]
 then
-      cat $BASEDIR\/STAR_RSEM_out\/SJ.out.tab | awk '{print $1 "\t" $2-1 "\t" $7}' | sort -k1,1 -k2,2n | bedtools groupby -g 1,2 -c 3 -o sum > SJ_exon.pre1
-      cat $BASEDIR\/STAR_RSEM_out\/SJ.out.tab | awk '{print $1 "\t" $3+1 "\t" $7}' | sort -k1,1 -k2,2n | bedtools groupby -g 1,2 -c 3 -o sum > SJ_exon.pre2
+      cat $BASEDIR1\/$OPN\/STAR_RSEM_out\/SJ.out.tab | awk '{print $1 "\t" $2-1 "\t" $7}' | sort -k1,1 -k2,2n | bedtools groupby -g 1,2 -c 3 -o sum > SJ_exon.pre1
+      cat $BASEDIR1\/$OPN\/STAR_RSEM_out\/SJ.out.tab | awk '{print $1 "\t" $3+1 "\t" $7}' | sort -k1,1 -k2,2n | bedtools groupby -g 1,2 -c 3 -o sum > SJ_exon.pre2
       cat SJ_exon.pre1 SJ_exon.pre2 | awk '{print $1"_"$2 "\t" $3}' | sort -k1,1 > SJ_exon.count
 else
-      cat $BASEDIR\/STAR_RSEM_out\/SJ.out.tab | awk '{print "chr"$1 "\t" $2-1 "\t" $7}' | sort -k1,1 -k2,2n | bedtools groupby -g 1,2 -c 3 -o sum > SJ_exon.pre1
-      cat $BASEDIR\/STAR_RSEM_out\/SJ.out.tab | awk '{print "chr"$1 "\t" $3+1 "\t" $7}' | sort -k1,1 -k2,2n | bedtools groupby -g 1,2 -c 3 -o sum > SJ_exon.pre2
+      cat $BASEDIR1\/$OPN\/STAR_RSEM_out\/SJ.out.tab | awk '{print "chr"$1 "\t" $2-1 "\t" $7}' | sort -k1,1 -k2,2n | bedtools groupby -g 1,2 -c 3 -o sum > SJ_exon.pre1
+      cat $BASEDIR1\/$OPN\/STAR_RSEM_out\/SJ.out.tab | awk '{print "chr"$1 "\t" $3+1 "\t" $7}' | sort -k1,1 -k2,2n | bedtools groupby -g 1,2 -c 3 -o sum > SJ_exon.pre2
       cat SJ_exon.pre1 SJ_exon.pre2 | awk '{print $1"_"$2 "\t" $3}' | sort -k1,1 > SJ_exon.count      
 fi 
 
-cat $BASEDIR\/STAR_RSEM_out\/RSEMout.genes.results | awk '{print $1 "\t" $6 "\t" $7}' | sed -e '1d' > genes_RSEM.txt
+cat $BASEDIR1\/$OPN\/STAR_RSEM_out\/RSEMout.genes.results | awk '{print $1 "\t" $6 "\t" $7}' | sed -e '1d' > genes_RSEM.txt
 join ENSG_GeneID_convert.txt genes_RSEM.txt > ENSG_GeneID_RSEM.txt  
 ## ENSG versus GeneID is multiple to one, choose choose large FPKM as represent of GeneID ## 
 cat ENSG_GeneID_RSEM.txt | awk '{print $2 "\t" $3 "\t" $4}' |  sort -rnk2 | awk '!x[$1]++' | sort -k1,1 > ENSG_GeneID_RSEM.txt.tmp 
@@ -144,12 +155,12 @@ if [[ -n "$CIRCULAR" ]]; then
    
    echo ""
   
-   date "+%H:%M:%S   %d/%m/%y ...... intra-Comparation analysis"
+   date "+%d/%m/%y %H:%M:%S ...... intra-Comparation analysis"
 
-   rm -r -f  $BASEDIR\/comparison\/intra
-   mkdir $BASEDIR\/comparison\/intra
+   rm -r -f  $BASEDIR1\/$OPN\/comparison\/intra
+   mkdir $BASEDIR1\/$OPN\/comparison\/intra
 
-   cd $BASEDIR\/comparison
+   cd $BASEDIR1\/$OPN\/comparison
    ## intra results ##
    echo ""
    echo "Step: adjusting intra results to exon boundary"
@@ -175,7 +186,7 @@ if [[ -n "$CIRCULAR" ]]; then
    ## merge intra ##
     echo ""
     echo "Step: merging intra results"
-    cd  $BASEDIR
+    cd  $BASEDIR1\/$OPN
     cat comparison\/intra\/*.circEB | sort -k1,1 -k2,2n | uniq  > all.circEB
     cat all.circEB | awk '{print $1":"$2":"$3":"$4":"$5":"$6 "\t" $8}' | sort -k1 | uniq > all.circEB.tmp 
 
@@ -204,9 +215,9 @@ if [[ -n "$CIRCULAR" ]]; then
     $BASEDIR\/bin\/graphic.R intraMerged.result intra
 
    echo "Step - Characteristics of intra-NCL events"
-   rm -r -f $BASEDIR\/comparison\/intra_Characteristics
-   mkdir $BASEDIR\/comparison\/intra_Characteristics
-   cd $BASEDIR\/comparison
+   rm -r -f $BASEDIR1\/$OPN\/comparison\/intra_Characteristics
+   mkdir $BASEDIR1\/$OPN\/comparison\/intra_Characteristics
+   cd $BASEDIR1\/$OPN\/comparison
    ls intra > sampleCircEB.tmp 
    sampleCircEB_num=$(cat sampleCircEB.tmp | wc -l)
    echo "intra sample number: "$sampleCircEB_num
@@ -230,7 +241,7 @@ if [[ -n "$CIRCULAR" ]]; then
 
        #echo "Step - to calculate SJpj using CalSJpj.sh"
        ## generate SJ_pj.txt and gene_pmed.txt ##
-       $BASEDIR/bin/CalSJpj.sh intra/$getOne $geneGTF $BASEDIR\/STAR_RSEM_out\/SJ.out.tab
+       $BASEDIR/bin/CalSJpj.sh intra/$getOne $geneGTF $BASEDIR1\/$OPN\/STAR_RSEM_out\/SJ.out.tab
 
        #echo "Step - to calculate pj and pmed"
        ### merge SJ_pj ###
@@ -252,7 +263,7 @@ if [[ -n "$CIRCULAR" ]]; then
 
        #echo "Step - to examine out of circular using OutOfCircular.sh"
        ## generate OC.final ##
-       $BASEDIR/bin/OutOfCircular.sh intra/$getOne $BASEDIR\/STAR_RSEM_out\/Chimeric.out.junction $BASEDIR\/STAR_RSEM_out\/Chimeric.out.sam $BASEDIR\/STAR_RSEM_out\/Log.final.out
+       $BASEDIR/bin/OutOfCircular.sh intra/$getOne $BASEDIR1\/$OPN\/STAR_RSEM_out\/Chimeric.out.junction $BASEDIR1\/$OPN\/STAR_RSEM_out\/Chimeric.out.sam $BASEDIR1\/$OPN\/STAR_RSEM_out\/Log.final.out
        cat OC.final | awk '{print $1"_"$2"_"$3"_"$4"_"$5"_"$6 "\t" $8}' | sort -k1 > OC.final.tmp
        cat NCLsample_RSEM_pj_pmed.txt | awk '{print $1"_"$2"_"$3"_"$4"_"$5"_"$6 "\t" $0}' | sort -k1 > NCLsample_RSEM_pj_pmed_OC.txt.tmp1
        join NCLsample_RSEM_pj_pmed_OC.txt.tmp1 OC.final.tmp | cut -f 2- -d ' ' | sort -k1,1 -k2,2n | uniq > NCLsample_RSEM_pj_pmed_OC.txt.tmp2 
@@ -262,12 +273,12 @@ if [[ -n "$CIRCULAR" ]]; then
        if [[ -n "$SCE" ]]; then 
           #echo "Step - to determine donor/acceptor side within SCE"
           paste <(cat NCLsample_RSEM_pj_pmed_OC.txt | awk '{print $1 "\t" $2-1 "\t" $2}')  <(cat NCLsample_RSEM_pj_pmed_OC.txt | tr ' ' '_')  > NCLsample_RSEM_pj_pmed_OC_SCE.tmp1
-          bedtools intersect -a NCLsample_RSEM_pj_pmed_OC_SCE.tmp1 -b ../example/SCE/SCE_hg38.bed -wa | sort | uniq | awk '{print $4"_1"}' > NCLsample_RSEM_pj_pmed_OC_SCE.tmp2
-          bedtools intersect -a NCLsample_RSEM_pj_pmed_OC_SCE.tmp1 -b ../example/SCE/SCE_hg38.bed -v | sort | uniq | awk '{print $4"_0"}' > NCLsample_RSEM_pj_pmed_OC_SCE.tmp3
+          bedtools intersect -a NCLsample_RSEM_pj_pmed_OC_SCE.tmp1 -b $SCE -wa | sort | uniq | awk '{print $4"_1"}' > NCLsample_RSEM_pj_pmed_OC_SCE.tmp2
+          bedtools intersect -a NCLsample_RSEM_pj_pmed_OC_SCE.tmp1 -b $SCE -v | sort | uniq | awk '{print $4"_0"}' > NCLsample_RSEM_pj_pmed_OC_SCE.tmp3
           cat NCLsample_RSEM_pj_pmed_OC_SCE.tmp2 NCLsample_RSEM_pj_pmed_OC_SCE.tmp3 | tr '_' ' ' > NCLsample_RSEM_pj_pmed_OC_SCE.tmp4
           paste <(cat NCLsample_RSEM_pj_pmed_OC_SCE.tmp4 | awk '{print $4 "\t" $5-1 "\t" $5}')  <(cat NCLsample_RSEM_pj_pmed_OC_SCE.tmp4 | tr ' ' '_')  > NCLsample_RSEM_pj_pmed_OC_SCE.tmp5
-          bedtools intersect -a NCLsample_RSEM_pj_pmed_OC_SCE.tmp5 -b ../example/SCE/SCE_hg38.bed -wa  | sort | uniq | awk '{print $4"_1"}' > NCLsample_RSEM_pj_pmed_OC_SCE.tmp6
-          bedtools intersect -a NCLsample_RSEM_pj_pmed_OC_SCE.tmp5 -b ../example/SCE/SCE_hg38.bed -v  | sort | uniq| awk '{print $4"_0"}' > NCLsample_RSEM_pj_pmed_OC_SCE.tmp7
+          bedtools intersect -a NCLsample_RSEM_pj_pmed_OC_SCE.tmp5 -b $SCE -wa  | sort | uniq | awk '{print $4"_1"}' > NCLsample_RSEM_pj_pmed_OC_SCE.tmp6
+          bedtools intersect -a NCLsample_RSEM_pj_pmed_OC_SCE.tmp5 -b $SCE -v  | sort | uniq| awk '{print $4"_0"}' > NCLsample_RSEM_pj_pmed_OC_SCE.tmp7
           cat NCLsample_RSEM_pj_pmed_OC_SCE.tmp6 NCLsample_RSEM_pj_pmed_OC_SCE.tmp7 | tr '_' ' ' > NCLsample_RSEM_pj_pmed_OC_SCE.txt
           echo "Chr_donor Pos_donor Strand_donor Chr_acceptot Pos_acceptor Strand_acceptor JunctionRead Gene_donor Gene_acceptor LinearRead_donor LinearRead_acceptor RPM_totalRead RPM_mappedRead CF NCLratio FPKM TPM pj_dornor pj_acceptor pmedian OC SCE_donor SCE_acceptor" > HeaderPost.txt
           cat HeaderPost.txt NCLsample_RSEM_pj_pmed_OC_SCE.txt | tr ' ' \\t > intra_Characteristics/$getOneName.final
@@ -284,11 +295,11 @@ fi
 if [[ -n "$FUSION" ]]; then
 
     echo ""
-    date "+%H:%M:%S   %d/%m/%y ...... intra-Comparation analysis"
+    date "+%d/%m/%y %H:%M:%S ...... inter-Comparation analysis"
 
-    rm -r -f  $BASEDIR\/comparison\/inter
-    mkdir $BASEDIR\/comparison\/inter
-    cd $BASEDIR\/comparison
+    rm -r -f  $BASEDIR1\/$OPN\/comparison\/inter
+    mkdir $BASEDIR1\/$OPN\/comparison\/inter
+    cd $BASEDIR1\/$OPN\/comparison
     ## inter results ##
     echo ""
     echo "Step: adjusting inter results to exon boundary"
@@ -314,7 +325,7 @@ if [[ -n "$FUSION" ]]; then
     ## merge inter ##
     echo ""
     echo "Step: merging inter results"
-    cd  $BASEDIR
+    cd  $BASEDIR1\/$OPN
     cat comparison/inter/*.fusionEB | sort -k1,1 -k2,2n | uniq  > all.fusionEB
     cat all.fusionEB | awk '{print $1":"$2":"$3":"$4":"$5":"$6 "\t" $8":"$9}' | sort -k1 | uniq > all.fusionEB.tmp 
 
@@ -344,9 +355,9 @@ if [[ -n "$FUSION" ]]; then
     
    
     echo "Step - Characteristics of inter-NCL events"
-    cd $BASEDIR\/comparison
-    rm -r -f $BASEDIR\/comparison\/inter_Characteristics
-    mkdir $BASEDIR\/comparison\/inter_Characteristics
+    cd $BASEDIR1\/$OPN\/comparison
+    rm -r -f $BASEDIR1\/$OPN\/comparison\/inter_Characteristics
+    mkdir $BASEDIR1\/$OPN\/comparison\/inter_Characteristics
 
     ls inter > sampleFusionEB.tmp 
     sampleFusionEB_num=$(cat sampleFusionEB.tmp | wc -l)
@@ -373,7 +384,7 @@ if [[ -n "$FUSION" ]]; then
 
         #echo "Step - to calculate SJpj using CalSJpj.sh"
         ## generate SJ_pj.txt and gene_pmed.txt ##
-        $BASEDIR/bin/CalSJpj.sh inter/$getOne $geneGTF $BASEDIR\/STAR_RSEM_out\/SJ.out.tab
+        $BASEDIR/bin/CalSJpj.sh inter/$getOne $geneGTF $BASEDIR1\/$OPN\/STAR_RSEM_out\/SJ.out.tab
 
 
         #echo "Step - to calculate pj and pmed"
@@ -420,19 +431,19 @@ if [[ -n "$FUSION" ]]; then
 
 fi
 
-
-rm -r -f $BASEDIR\/comparison\/exons_boundary.bed
-rm -r -f $BASEDIR\/comparison\/exons_boundary.tmp1
-rm -r -f $BASEDIR\/comparison\/exons_boundary.tmp2
-rm -r -f $BASEDIR\/comparison\/exons.txt
-rm -r -f $BASEDIR\/comparison\/intra_tmp1.bed
-rm -r -f $BASEDIR\/comparison\/intra_tmp2.bed
-rm -r -f $BASEDIR\/comparison\/inter_tmp1.bed
-rm -r -f $BASEDIR\/comparison\/inter_tmp2.bed 
-rm -r -f $BASEDIR\/comparison\/intra_tmp.result
-rm -r -f $BASEDIR\/comparison\/inter_tmp.result
-rm -r -f $BASEDIR\/comparison\/sampleinter.tmp
-rm -r -f $BASEDIR\/comparison\/sampleintra.tmp
+rm -r -f $BASEDIR1\/$OPN\/STAR_RSEM_out
+rm -r -f $BASEDIR1\/$OPN\/comparison\/exons_boundary.bed
+rm -r -f $BASEDIR1\/$OPN\/comparison\/exons_boundary.tmp1
+rm -r -f $BASEDIR1\/$OPN\/comparison\/exons_boundary.tmp2
+rm -r -f $BASEDIR1\/$OPN\/comparison\/exons.txt
+rm -r -f $BASEDIR1\/$OPN\/comparison\/intra_tmp1.bed
+rm -r -f $BASEDIR1\/$OPN\/comparison\/intra_tmp2.bed
+rm -r -f $BASEDIR1\/$OPN\/comparison\/inter_tmp1.bed
+rm -r -f $BASEDIR1\/$OPN\/comparison\/inter_tmp2.bed 
+rm -r -f $BASEDIR1\/$OPN\/comparison\/intra_tmp.result
+rm -r -f $BASEDIR1\/$OPN\/comparison\/inter_tmp.result
+rm -r -f $BASEDIR1\/$OPN\/comparison\/sampleinter.tmp
+rm -r -f $BASEDIR1\/$OPN\/comparison\/sampleintra.tmp
 
 
 rm -r -f NCLsample*
