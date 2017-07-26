@@ -121,6 +121,7 @@ intraMerged.result (tab-delimited text file)
 | (9) | Circular tool No.2	(Yes: number of supporting intragenic NCL-junction reads; No: 0) |
 |(10) | ... |
 
+
 interMerged.result (tab-delimited text file)
 
 |No. of columun | Description |
@@ -139,6 +140,7 @@ interMerged.result (tab-delimited text file)
 
 
 The other two ouputs, intraMerged_characteristic.result and interMerged_characteristic.result, provide the useful features of NCL events.
+
 
 intraMerged_characteristic.result (tab-delimited text file)
 
@@ -174,6 +176,7 @@ intraMerged_characteristic.result (tab-delimited text file)
 |(Optional)| The donor size within SCE (1) or outside SCE (0) |	
 |(Optional)| The acceptor size within SCE (1) or outside SCE (0) |
 
+
 interMerged_characteristic.result (tab-delimited text file)
 
 | No. of column | Description |      
@@ -207,6 +210,7 @@ interMerged_characteristic.result (tab-delimited text file)
 | (Optional) | The acceptor size within SCE (1) or outside SCE (0) |
 
 In comparison folder, the intra or inter folder are created for adjusting the positions of NCL detection tools to the positions of exon boundaries.
+
 
 toolName.circEB or toolName.fusionEB (tab-delimited text file)
 
