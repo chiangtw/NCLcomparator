@@ -5,7 +5,7 @@ key="$1"
 
 case $key in
      -gtf|--annotation) 
-     geneGTF=$2
+     geneGTF=$(readlink -f $2)
      shift
      ;; 
      -thread|--ThreadN) 
@@ -13,27 +13,27 @@ case $key in
      shift
      ;; 
      -index|--STAR_RSEMindex) 
-     SRindex=$2
+     SRindex=$(readlink -f $2)
      shift
      ;; 
      -read1|--read1) 
-     read1=$2
+     read1=$(readlink -f $2)
      shift
      ;; 
      -read2|--read2) 
-     read2=$2
+     read2=$(readlink -f $2)
      shift
      ;;
      -intra|--cicular) 
-     CIRCULAR=$2
+     CIRCULAR=$(readlink -f $2)
      shift
      ;;
      -inter|--fusion)
-     FUSION=$2
+     FUSION=$(readlink -f $2)
      shift
      ;;
      -sce|--SCE)
-     SCE=$2
+     SCE=$(readlink -f $2)
      shift
      ;;
      -o|--outputName)
@@ -49,6 +49,7 @@ done
 
 
 if [[ -z "$geneGTF" ]]; then
+   echo ""
    echo "Usage:"
    echo "./NCLcomparator.sh -gtf [annotation gtf file] -thread [number of thread] -index [STAR_RSEM_index folder] -read1 [read1 fastq.gz file] -read2 [read2 fastq.gz file]  -intra [circular results folder] -inter [fusion results folder] -sce [sce bed file] -o [ output Name] "
    echo ""
@@ -58,6 +59,7 @@ if [[ -z "$geneGTF" ]]; then
 fi
 
 if [[ -z "$SRindex" ]]; then
+   echo ""
    echo "Usage:"
    echo "./NCLcomparator.sh -gtf [annotation gtf file] -thread [number of thread] -index [STAR_RSEM_index folder] -read1 [read1 fastq.gz file] -read2 [read2 fastq.gz file]  -intra [circular results folder] -inter [fusion results folder] -sce [sce bed file] -o [ output Name] "
    echo ""
@@ -67,6 +69,7 @@ if [[ -z "$SRindex" ]]; then
 fi
 
 if [[ -z "$read1" ]]; then
+   echo ""
    echo "Usage:"
    echo "./NCLcomparator.sh -gtf [annotation gtf file] -thread [number of thread] -index [STAR_RSEM_index folder] -read1 [read1 fastq.gz file] -read2 [read2 fastq.gz file]  -intra [circular results folder] -inter [fusion results folder] -sce [sce bed file] -o [ output Name] "
    echo ""
@@ -76,6 +79,7 @@ if [[ -z "$read1" ]]; then
 fi
 
 if [[ -z "$read2" ]]; then
+   echo ""
    echo "Usage:"
    echo "./NCLcomparator.sh -gtf [annotation gtf file] -thread [number of thread] -index [STAR_RSEM_index folder] -read1 [read1 fastq.gz file] -read2 [read2 fastq.gz file]  -intra [circular results folder] -inter [fusion results folder] -sce [sce bed file] -o [ output Name] "
    echo ""
@@ -95,8 +99,6 @@ fi
 
 BASEDIR=$(dirname $(readlink -f "$0"))
 BASEDIR1=$(pwd)
-
-
 rm -r -f $BASEDIR1\/$OPN
 mkdir $BASEDIR1\/$OPN
 mkdir $BASEDIR1\/$OPN\/STAR_RSEM_out
@@ -104,6 +106,8 @@ cd $BASEDIR1\/$OPN\/STAR_RSEM_out
 STAR --chimSegmentMin 10 --runThreadN $Thread --genomeDir $SRindex --readFilesIn $read1 $read2 --readFilesCommand zcat --outSAMtype BAM Unsorted --quantMode TranscriptomeSAM
 rm -r -f Aligned.out.bam
 rsem-calculate-expression -p $Thread --paired-end --bam Aligned.toTranscriptome.out.bam $SRindex\/RSEM RSEMout
+echo ""
+date "+%d/%m/%y %H:%M:%S ...... started NCLcomparator analysis!"
 
 totalRead=$(cat $BASEDIR1\/$OPN\/STAR_RSEM_out\/Log.final.out | grep 'Number of input reads' | awk '{print $6}')
 UMRead=$(cat $BASEDIR1\/$OPN\/STAR_RSEM_out\/Log.final.out | grep 'Uniquely mapped reads number'| awk '{print $6}')
@@ -113,43 +117,44 @@ mkdir $BASEDIR1\/$OPN\/comparison
 
 ## build exon boundary ##
 echo ""
-echo "Step: building exon boundary"
+date "+%d/%m/%y %H:%M:%S ...... building exon boundaries"
 cd $BASEDIR1\/$OPN\/comparison
 
 chrCheck=$(cat $geneGTF | grep -v "#" | head -1 | awk '{print $1}' | grep 'chr')
 
 if [[ -n "$chrCheck" ]]
 then
-    cat $geneGTF | awk '{for(i=1;i<=NF;i++) if($i=="exon_id"){print  $(i+1) "\t" $0} }' | awk '{for(i=1;i<=NF;i++) if($i=="gene_name"){print  $(i+1) "\t" $0} }' | awk '{for(i=1;i<=NF;i++) if($i=="gene_id"){print  $(i+1) "\t" $0} }' | awk '{print $3 "\t" $2 "\t" $1 "\t" $4 "\t" $7 "\t" $8 "\t" $10}' | sed 's/;//g' | sed 's/"//g' | awk '{print $4 "\t" $5 "\t" $6 "\t" $7 "\t" $2"_"$3}' | sort -k1,1 -k2,2n | uniq > exons.txt
-    cat exons.txt | awk '{print $1 "\t" $2-6 "\t" $2+5 "\t" $1"_"$2"_"$4"_"$5}' | sort -k1,1 -k2,2n | uniq > exons_boundary.tmp1
-    cat exons.txt | awk '{print $1 "\t" $3-6 "\t" $3+5 "\t" $1"_"$3"_"$4"_"$5}' | sort -k1,1 -k2,2n | uniq > exons_boundary.tmp2
+    cat $geneGTF | awk '{for(i=1;i<=NF;i++) if($i=="exon_id"){print  $(i+1) "\t" $0} }' | awk '{for(i=1;i<=NF;i++) if($i=="gene_name"){print  $(i+1) "\t" $0} }' | awk '{for(i=1;i<=NF;i++) if($i=="gene_id"){print  $(i+1) "\t" $0} }' | awk '{print $3 "\t" $2 "\t" $1 "\t" $4 "\t" $7 "\t" $8 "\t" $10}' | sed 's/;//g' | sed 's/"//g' | awk '{print $4 "\t" $5 "\t" $6 "\t" $7 "\t" $2":"$3}' | sort -k1,1 -k2,2n | uniq > exons.txt
+    cat exons.txt | awk '{print $1 "\t" $2-6 "\t" $2+5 "\t" $1":"$2":"$4":"$5}' | sort -k1,1 -k2,2n | uniq > exons_boundary.tmp1
+    cat exons.txt | awk '{print $1 "\t" $3-6 "\t" $3+5 "\t" $1":"$3":"$4":"$5}' | sort -k1,1 -k2,2n | uniq > exons_boundary.tmp2
     cat exons_boundary.tmp1 exons_boundary.tmp2 | sort -k1,1 -k2,2n | uniq  > exons_boundary.bed
 else
-    cat $geneGTF | awk '{for(i=1;i<=NF;i++) if($i=="exon_id"){print  $(i+1) "\t" $0} }' | awk '{for(i=1;i<=NF;i++) if($i=="gene_name"){print  $(i+1) "\t" $0} }' | awk '{for(i=1;i<=NF;i++) if($i=="gene_id"){print  $(i+1) "\t" $0} }' | awk '{print $3 "\t" $2 "\t" $1 "\t" "chr"$4 "\t" $7 "\t" $8 "\t" $10}' | sed 's/;//g' | sed 's/"//g' | awk '{print $4 "\t" $5 "\t" $6 "\t" $7 "\t" $2"_"$3}' | sort -k1,1 -k2,2n | uniq > exons.txt
-    cat exons.txt | awk '{print $1 "\t" $2-6 "\t" $2+5 "\t" $1"_"$2"_"$4"_"$5}' | sort -k1,1 -k2,2n | uniq > exons_boundary.tmp1   
-    cat exons.txt | awk '{print $1 "\t" $3-6 "\t" $3+5 "\t" $1"_"$3"_"$4"_"$5}' | sort -k1,1 -k2,2n | uniq > exons_boundary.tmp2
+    cat $geneGTF | awk '{for(i=1;i<=NF;i++) if($i=="exon_id"){print  $(i+1) "\t" $0} }' | awk '{for(i=1;i<=NF;i++) if($i=="gene_name"){print  $(i+1) "\t" $0} }' | awk '{for(i=1;i<=NF;i++) if($i=="gene_id"){print  $(i+1) "\t" $0} }' | awk '{print $3 "\t" $2 "\t" $1 "\t" "chr"$4 "\t" $7 "\t" $8 "\t" $10}' | sed 's/;//g' | sed 's/"//g' | awk '{print $4 "\t" $5 "\t" $6 "\t" $7 "\t" $2":"$3}' | sort -k1,1 -k2,2n | uniq > exons.txt
+    cat exons.txt | awk '{print $1 "\t" $2-6 "\t" $2+5 "\t" $1":"$2":"$4":"$5}' | sort -k1,1 -k2,2n | uniq > exons_boundary.tmp1   
+    cat exons.txt | awk '{print $1 "\t" $3-6 "\t" $3+5 "\t" $1":"$3":"$4":"$5}' | sort -k1,1 -k2,2n | uniq > exons_boundary.tmp2
     cat exons_boundary.tmp1 exons_boundary.tmp2 | sort -k1,1 -k2,2n | uniq  > exons_boundary.bed
 fi
 
 cat $geneGTF | awk '{for(i=1;i<=NF;i++) if($i=="gene_name"){print  $(i+1) "\t" $0} }'  | awk '{for(i=1;i<=NF;i++) if($i=="gene_id") {print $(i+1) "\t" $0}}' | awk '{print $1 "\t" $2}' | sed 's/;//g' | sed 's/"//g' | sort  | uniq > ENSG_GeneID_convert.txt
+cat $geneGTF | awk '{for(i=1;i<=NF;i++) if($i=="exon_number") {print $(i+1) "\t" $0} }'| awk '{for(i=1;i<=NF;i++) if($i=="gene_name"){print  $(i+1) "\t" $0} }' | awk '{print $1 "\t" $2}' | sed 's/;//g' | sed 's/"//g'| sort -k1 -rnk2 | awk '!x[$1]++' | sort -k1,1 > GeneID_exonNum.txt
 
 chrCheck=$(cat $BASEDIR1\/$OPN\/STAR_RSEM_out\/SJ.out.tab | head -10 | grep 'chr')
 if [[ -n "$chrCheck" ]]
 then
       cat $BASEDIR1\/$OPN\/STAR_RSEM_out\/SJ.out.tab | awk '{print $1 "\t" $2-1 "\t" $7}' | sort -k1,1 -k2,2n | bedtools groupby -g 1,2 -c 3 -o sum > SJ_exon.pre1
       cat $BASEDIR1\/$OPN\/STAR_RSEM_out\/SJ.out.tab | awk '{print $1 "\t" $3+1 "\t" $7}' | sort -k1,1 -k2,2n | bedtools groupby -g 1,2 -c 3 -o sum > SJ_exon.pre2
-      cat SJ_exon.pre1 SJ_exon.pre2 | awk '{print $1"_"$2 "\t" $3}' | sort -k1,1 > SJ_exon.count
+      cat SJ_exon.pre1 SJ_exon.pre2 | awk '{print $1":"$2 "\t" $3}' | sort -k1,1 > SJ_exon.count
 else
       cat $BASEDIR1\/$OPN\/STAR_RSEM_out\/SJ.out.tab | awk '{print "chr"$1 "\t" $2-1 "\t" $7}' | sort -k1,1 -k2,2n | bedtools groupby -g 1,2 -c 3 -o sum > SJ_exon.pre1
       cat $BASEDIR1\/$OPN\/STAR_RSEM_out\/SJ.out.tab | awk '{print "chr"$1 "\t" $3+1 "\t" $7}' | sort -k1,1 -k2,2n | bedtools groupby -g 1,2 -c 3 -o sum > SJ_exon.pre2
-      cat SJ_exon.pre1 SJ_exon.pre2 | awk '{print $1"_"$2 "\t" $3}' | sort -k1,1 > SJ_exon.count      
+      cat SJ_exon.pre1 SJ_exon.pre2 | awk '{print $1":"$2 "\t" $3}' | sort > SJ_exon.count      
 fi 
 
 cat $BASEDIR1\/$OPN\/STAR_RSEM_out\/RSEMout.genes.results | awk '{print $1 "\t" $6 "\t" $7}' | sed -e '1d' > genes_RSEM.txt
 join ENSG_GeneID_convert.txt genes_RSEM.txt > ENSG_GeneID_RSEM.txt  
 ## ENSG versus GeneID is multiple to one, choose choose large FPKM as represent of GeneID ## 
 cat ENSG_GeneID_RSEM.txt | awk '{print $2 "\t" $3 "\t" $4}' |  sort -rnk2 | awk '!x[$1]++' | sort -k1,1 > ENSG_GeneID_RSEM.txt.tmp 
-    
+ 
 
 if [[ -n "$CIRCULAR" ]]; then
    
@@ -162,133 +167,144 @@ if [[ -n "$CIRCULAR" ]]; then
 
    cd $BASEDIR1\/$OPN\/comparison
    ## intra results ##
-   echo ""
-   echo "Step: adjusting intra results to exon boundary"
+   echo "Step: to adjust the junction coordinates of intra results into exon boundaries"
    ls $CIRCULAR > sampleintra.tmp 
    sampleintra_num=$(cat sampleintra.tmp | wc -l)
-   echo "intra sample number: "$sampleintra_num
-
+   
    for i in $(seq 1 "$sampleintra_num")
    do 
      getOne=$(cat sampleintra.tmp | awk 'NR==k {print $1}' k=$i)
-     echo $getOne
+     #echo $getOne
      getOneName=$(echo $getOne | sed 's/[.]/\t/g' | awk '{print $1}') 
-     cat $CIRCULAR/$getOne | sort -k1,1 -k2,2n | awk '$1~/^chr[0-9XY]*$/ {print $0}' | awk '$3~/^chr[0-9XY]*$/ {print $0}' | awk '$2~/^[0-9]*$/ {print $0}'| awk '$4~/^[0-9]*$/ {print $0}' | awk '{print $1 "\t" $2-1 "\t" $2 "\t" $1"_"$2"_"$3"_"$4"_"$5}' | sort -k1,1 -k2,2n | uniq  > intra_tmp1.bed
-     bedtools intersect -a intra_tmp1.bed -b exons_boundary.bed -wa -wb | awk '{print $4 "\t" $8}' | sed 's/_/\t/g' | awk '{print $3 "\t" $4-1 "\t" $4 "\t" $1"_"$2"_"$3"_"$4"_"$5"_"$6"_"$7"_"$8"_"$9}' | sort -k1,1 -k2,2n | uniq > intra_tmp2.bed
-     bedtools intersect -a intra_tmp2.bed -b exons_boundary.bed  -wa -wb | awk '{print $4 "\t" $8}' | sed 's/_/\t/g' | awk '{print $6 "\t" $7 "\t" $8 "\t" $10 "\t" $11 "\t" $12 "\t" $5 "\t" $9 "\t" $13}'| sort -k1,1 -k2,2n | uniq | awk '$3==$6 && $8==$9 {print $0}'  > intra_tmp.result
+     cat $CIRCULAR/$getOne | sort -k1,1 -k2,2n | awk '$1~/^chr[0-9XY]*$/ {print $0}' | awk '$3~/^chr[0-9XY]*$/ {print $0}' | awk '$2~/^[0-9]*$/ {print $0}'| awk '$4~/^[0-9]*$/ {print $0}' | awk '{print $1 "\t" $2-1 "\t" $2 "\t" $1":"$2":"$3":"$4":"$5}' | sort -k1,1 -k2,2n | uniq  > intra_tmp1.bed
+     bedtools intersect -a intra_tmp1.bed -b exons_boundary.bed -wa -wb | awk '{print $4 "\t" $8}' | sed 's/:/\t/g' | awk '{print $3 "\t" $4-1 "\t" $4 "\t" $1":"$2":"$3":"$4":"$5":"$6":"$7":"$8":"$9}' | sort -k1,1 -k2,2n | uniq > intra_tmp2.bed
+     bedtools intersect -a intra_tmp2.bed -b exons_boundary.bed  -wa -wb | awk '{print $4 "\t" $8}' | sed 's/:/\t/g' | awk '{print $6 "\t" $7 "\t" $8 "\t" $10 "\t" $11 "\t" $12 "\t" $5 "\t" $9 "\t" $13}'| sort -k1,1 -k2,2n | uniq | awk '$3==$6 && $8==$9 {print $0}'  > intra_tmp.result
      cat intra_tmp.result | sed 's/+/sense/g' | sed 's/-/anti/g' | awk '{print $1 "\t" $2 "\t" $3 "\t" $4 "\t" $5 "\t" $6 "\t" $7 "\t" $8}' | sort -k1,1 -k2,2n | uniq | bedtools groupby -g 1,2,3,4,5,6,7 -c 8 -o collapse | sed 's/sense/+/g' | sed 's/anti/-/g' | awk '{print $0 "\t" $8}'| sort -k1,1 -k2,2n | uniq > intra_tmp1.result
      cat intra_tmp1.result | awk '{if($3=="+" && $2 > $5) print $0; else if($3=="+" && $2 < $5) print $1 "\t" $5 "\t" $3 "\t" $4 "\t" $2 "\t" $6 "\t" $7 "\t" $8 "\t" $9; else if($3=="-" && $2 < $5) print $0; else if($3=="-"&& $2> $5) print $1 "\t" $5 "\t" $3 "\t" $4 "\t" $2 "\t" $6 "\t" $7 "\t" $8 "\t" $9}'| sort -k1,1 -k2,2n | uniq > intra_tmp2.result
-     cat intra_tmp2.result | sed 's/+/sense/g' | sed 's/-/anti/g' | awk '{print $1"_"$2"_"$3"_"$4"_"$5"_"$6"_"$8 "\t" $7}' | sort | bedtools groupby -g 1 -c 2 -o sum > intra_tmp3.result  
-     cat intra_tmp3.result | sed 's/_/\t/g'| sed 's/sense/+/g' | sed 's/anti/-/g' | awk '{print $1 "\t" $2 "\t" $3 "\t" $4 "\t" $5 "\t" $6 "\t" $8 "\t" $7 "\t" $7 }'> intra\/$getOneName.circEB 
+     cat intra_tmp2.result | sed 's/+/sense/g' | sed 's/-/anti/g' | awk '{print $1":"$2":"$3":"$4":"$5":"$6":"$8 "\t" $7}' | sort | bedtools groupby -g 1 -c 2 -o sum > intra_tmp3.result  
+     cat intra_tmp3.result | sed 's/:/\t/g'| sed 's/sense/+/g' | sed 's/anti/-/g' | awk '{print $1 "\t" $2 "\t" $3 "\t" $4 "\t" $5 "\t" $6 "\t" $8 "\t" $7 "\t" $7 }'> intra\/$getOneName.circEB 
  
    done
 
    ## merge intra ##
-    echo ""
-    echo "Step: merging intra results"
+    echo "Step: to merge intra results to intraMerged.result"
     cd  $BASEDIR1\/$OPN
+
+
     cat comparison\/intra\/*.circEB | sort -k1,1 -k2,2n | uniq  > all.circEB
     cat all.circEB | awk '{print $1":"$2":"$3":"$4":"$5":"$6 "\t" $8}' | sort -k1 | uniq > all.circEB.tmp 
 
     ls comparison\/intra > sampleintra 
     sampleintra_num=$(cat sampleintra | wc -l)
-    echo "intra sample number: "$sampleintra_num
+    echo "Number of intra tools: "$sampleintra_num
 
     header=$(echo "Chr" "\t" "Pos" "\t" "Strand" "\t" "Chr" "\t" "Pos" "\t" "Strand" "\t" "Genename")  
     sampleintra_num=$(echo $sampleintra_num)
     for i in $(seq 1 $sampleintra_num)
     do 
        getOne=$(cat sampleintra | awk 'NR==k {print $1}' k=$i)
-       echo $getOne
+       echo $i"." $getOne
        getOneName=$(echo $getOne | sed 's/[.]/\t/g' | awk '{print $1}')
        header=$(echo $header "\t" $getOneName)
-       cat comparison\/intra\/$getOne | awk '{print $1":"$2":"$3":"$4":"$5":"$6 "\t" 1}' | sort -k1 > $getOneName.circEB.tmp
+       cat comparison\/intra\/$getOne | awk '{print $1":"$2":"$3":"$4":"$5":"$6 "\t" $7}' | sort -k1 > $getOneName.circEB.tmp
        join -o 1.1 1.2 2.2 all.circEB.tmp  $getOneName.circEB.tmp -a1 -e0 | awk '{print $1 "\t" $2":"$3}' | sort -k1 | uniq > all.circEB_2.tmp
        cat all.circEB_2.tmp > all.circEB.tmp
     done
 
-    cat all.circEB.tmp  | sed 's/:/\t/g' | tr ' ' \\t > intraMerged.tmp
-    cat <(echo $header) intraMerged.tmp > intraMerged.result
+    cat all.circEB.tmp  | sed 's/:/\t/g' | tr ' ' \\t > $BASEDIR1\/$OPN\/comparison\/intraMerged.out
+    cat <(echo $header) $BASEDIR1\/$OPN\/comparison\/intraMerged.out > intraMerged.result
+    echo "Step: to graph intraMerged.result"
+    $BASEDIR1\/bin\/graphic_intra.R intraMerged.result intra
     rm -r -f *.tmp
     rm -r -f all.circEB
     rm -r -f sampleintra
-    $BASEDIR\/bin\/graphic.R intraMerged.result intra
-
-   echo "Step - Characteristics of intra-NCL events"
-   rm -r -f $BASEDIR1\/$OPN\/comparison\/intra_Characteristics
-   mkdir $BASEDIR1\/$OPN\/comparison\/intra_Characteristics
+   
    cd $BASEDIR1\/$OPN\/comparison
-   ls intra > sampleCircEB.tmp 
-   sampleCircEB_num=$(cat sampleCircEB.tmp | wc -l)
-   echo "intra sample number: "$sampleCircEB_num
+   cat intraMerged.out | awk '{print $7 "\t" $1 ":" $2 ":" $3 ":" $4 ":" $5 ":" $6 }' | sort -k1,1 > intraMerged.tmp1
+   echo "Step: to add the exon number of its host gene"
+   ## to add exon number ## 
+   join -o 1.1 1.2 2.2 intraMerged.tmp1 GeneID_exonNum.txt -a1 -e nd  | sort | uniq | tr ' ' \\t  > intraMerged.tmp.exonNum
+   echo "Step: to add  TPM and FPKM of its host gene"
+   ## to add TPM and FPKM ##
+   join -o 1.1 1.2 2.2 2.3 intraMerged.tmp1 ENSG_GeneID_RSEM.txt.tmp -a1 -e nd | sort | uniq | tr ' ' \\t  > intraMerged.tmp.TPM_FPKM
+   
+   
+   echo "Step: to calculate SJpj using CalSJpj.sh"
+   ### generate SJ_pj.txt and gene_pmed.txt ##
+   $BASEDIR1/bin/CalSJpj.sh intraMerged.out $geneGTF $BASEDIR1\/$OPN\/STAR_RSEM_out\/SJ.out.tab
+   cat SJ_pj.txt > intra_SJ_pj.txt
+   cat gene_pmed.txt > intra_gene_pmed.txt
+   
+   echo "Step: to examine out of circular using OutOfCircular.sh"
+   ## generate OC.final ##
+   $BASEDIR1/bin/OutOfCircular.sh intraMerged.out $BASEDIR1\/$OPN\/STAR_RSEM_out\/Chimeric.out.junction $BASEDIR1\/$OPN\/STAR_RSEM_out\/Chimeric.out.sam $BASEDIR1\/$OPN\/STAR_RSEM_out\/Log.final.out
+   
+   
+   join -o 1.1 1.2 1.3 2.3 2.4 intraMerged.tmp.exonNum intraMerged.tmp.TPM_FPKM -a1 -e nd | sort | uniq | tr ' ' \\t | awk '{print $2 "\t" $1 "\t" $3 "\t" $4 "\t" $5}' | tr ':' \\t > intraMerged.tmp2
+   paste <(cat intraMerged.tmp2 | awk '{print $1"_"$2}') <(cat intraMerged.tmp2 | tr '\t' ':') | sort > intraMerged.tmp3.1
+   join -o 1.2 2.2 intraMerged.tmp3.1 SJ_exon.count -a1 -e nd | tr ' ' \\t | tr ':' \\t | sort | uniq > intraMerged.tmp3.2
+   paste <(cat intraMerged.tmp3.2 | awk '{print $4"_"$5}') <(cat intraMerged.tmp3.2 | tr '\t' ':') | sort | uniq > intraMerged.tmp3.3  
+   join -o 1.2 2.2 intraMerged.tmp3.3 SJ_exon.count -a1 -e nd | tr ' ' \\t | tr ':' \\t | sort  | uniq > intraMerged.tmp3
+   
+   cat intra_SJ_pj.txt | awk '{print $1"_"$2 "\t" $4}' | sort | uniq > intra_SJ_pj.tmp1
+   paste <(cat intraMerged.tmp3 | awk '{print $1"_"$2"_"$7}') <(cat intraMerged.tmp3 | tr '\t' ':') | sort -k1,1 -k2,2n | uniq > intraMerged.tmp4.1
+   join -o 1.2 2.2 intraMerged.tmp4.1 intra_SJ_pj.tmp1 -a1 -e nd | sort -k1,1 -rnk2 | awk '!x[$1]++' | tr ' ' \\t | tr ':' \\t > intraMerged.tmp4.2
+   paste <(cat intraMerged.tmp4.2 | awk '{print $4"_"$5"_"$7 }') <(cat intraMerged.tmp4.2 | tr '\t' ':' ) | sort -k1,1 -k2,2n | uniq  > intraMerged.tmp4.3    
+   join -o 1.2 2.2 intraMerged.tmp4.3 intra_SJ_pj.tmp1 -a1 -e nd | tr ':' \\t | tr ' ' \\t | sort | uniq > intraMerged.tmp4.4
+   paste <(cat intraMerged.tmp4.4 | awk '{print $7}') <(cat intraMerged.tmp4.4 | tr '\t' ':') | sort -k1,1  | uniq > intraMerged.tmp4.5
+   join -o 1.2 2.2 intraMerged.tmp4.5 intra_gene_pmed.txt -a1 -e nd | tr ' ' \\t | tr ':' \\t | sort  | uniq > intraMerged.tmp4
+   paste <(cat intraMerged.tmp4 | awk '{print $1"_"$2"_"$3"_"$4"_"$5"_"$6}') <(cat intraMerged.tmp4 | tr '\t' ':') | sort -k1,1 | uniq > intraMerged.tmp5.1
+   cat OC.final | awk '{print $1"_"$2"_"$3"_"$4"_"$5"_"$6 "\t" $8}' | sort -k1,1 | uniq > OC.final.tmp1
+   join -o 1.2 2.2 intraMerged.tmp5.1 OC.final.tmp1 -a1 -e nd | tr ' ' \\t | tr ':' \\t > intraMerged.tmp5
 
-   for i in $(seq 1 "$sampleCircEB_num")
+   if [[ -z "$SCE" ]]; then 
+       echo "Chr_donor Pos_donor Strand_donor Chr_acceptot Pos_acceptor Strand_acceptor Gene_name Number_of_Exon TPM FPKM LinearRead_donor LinearRead_acceptor P_D P_A P_median Out_of_Circle" | tr ' ' \\t > Header.tmp1  
+    fi
+
+
+   if [[ -n "$SCE" ]]; then 
+      echo "Step: to determine donor/acceptor side within SCE"
+      paste <(cat intraMerged.out | awk '{print $1 "\t" $2-1 "\t" $2}')  <(cat intraMerged.out | awk '{print $1":"$2":"$3":"$4":"$5":"$6}')  > intraMerged_SCE.tmp1
+      bedtools intersect -a intraMerged_SCE.tmp1 -b $SCE -wa | sort | uniq | awk '{print $4":1"}' > intraMerged_SCE.tmp2
+      bedtools intersect -a intraMerged_SCE.tmp1 -b $SCE -v | sort | uniq | awk '{print $4":0"}' > intraMerged_SCE.tmp3
+      cat intraMerged_SCE.tmp2 intraMerged_SCE.tmp3 | tr ':' '\t' > intraMerged_SCE.tmp4
+      paste <(cat intraMerged_SCE.tmp4 | awk '{print $4 "\t" $5-1 "\t" $5}')  <(cat intraMerged_SCE.tmp4 | tr '\t' ':')  > intraMerged_SCE.tmp5
+      bedtools intersect -a intraMerged_SCE.tmp5 -b $SCE -wa  | sort | uniq | awk '{print $4":1"}' > intraMerged_SCE.tmp6
+      bedtools intersect -a intraMerged_SCE.tmp5 -b $SCE -v  | sort | uniq| awk '{print $4":0"}' > intraMerged_SCE.tmp7
+      cat intraMerged_SCE.tmp6 intraMerged_SCE.tmp7 | tr ':' '\t'  | sort -k1,1 -k2,2n > intraMerged_tmp_SCE.txt
+      paste <(cat intraMerged.tmp5 | awk '{print $1"_"$2"_"$3"_"$4"_"$5"_"$6}') <(cat intraMerged.tmp5 | tr '\t' ':') | sort -k1,1 | uniq > intraMerged.tmp6.1
+      cat intraMerged_tmp_SCE.txt | awk '{print $1"_"$2"_"$3"_"$4"_"$5"_"$6 "\t" $7":"$8 }' | sort -k1,1 | uniq > intraMerged_SCE.txt.tmp1
+      join -o 1.2 2.2 intraMerged.tmp6.1 intraMerged_SCE.txt.tmp1 -a1 -e nd | tr ' ' \\t | tr ':' \\t > intraMerged.tmp5
+      echo "Chr_donor Pos_donor Strand_donor Chr_acceptot Pos_acceptor Strand_acceptor Gene_name Number_of_Exon TPM FPKM LinearRead_donor LinearRead_acceptor P_D P_A P_median Out_of_Circle SCE_D SCE_A" | tr ' ' \\t > Header.tmp1  
+    fi
+
+   echo "Step: to calculate RPM, CF and RNCL in each tool "
+   
+   cat intraMerged.tmp3 | awk '{print $1":"$2":"$3":"$4":"$5":"$6 "\t" $11 "\t" $12}' | sort -k1,1 > intraMerged_LR.tmp
+   cat intraMerged.tmp5 > intraMerged.tmp5.1
+   cat Header.tmp1 > Header.tmp1.1
+   for i in $(seq 1 $sampleintra_num)
    do 
-       getOne=$(cat sampleCircEB.tmp | awk 'NR==k {print $1}' k=$i)
-       echo $getOne
-       getOneName=$(echo $getOne | sed 's/[.]/\t/g' | awk '{print $1}') 
-       #echo "Step - to calcuate LR, RPM_MappedReads, RPM_totalReads, CF, and NCLratio"
-       cat intra/$getOne > NCLsample.intra
-       cat NCLsample.intra | awk '{print $1"_"$2 "\t" $1"_"$2"_"$3"_"$4"_"$5"_"$6"_"$7"_"$8"_"$9}' | sort -k1,1 > NCLsample.intra.pre1
-       join -o 1.1 1.2 2.2 NCLsample.intra.pre1 SJ_exon.count -a1 -e0 | awk '{print $2 "\t" $3}' | sed 's/_/\t/g' | awk '{print $4"_"$5 "\t" $1"_"$2"_"$3"_"$4"_"$5"_"$6"_"$7"_"$8"_"$9"_"$10}' | sort -k1,1 > NCLsample.intra.pre2
-       join -o 1.1 1.2 2.2 NCLsample.intra.pre2 SJ_exon.count -a1 -e0 | awk '{print $2 "\t" $3}' | sed 's/_/\t/g' > NCLsample.count
-       cat NCLsample.count | awk '{print $0 "\t" ($7/M)*1000000 "\t" ($7/T)*1000000 "\t" $7/($10+$11+1) "\t" (2*$7)/(2*$7+$10+$11)}' T=$totalRead  M=$UMRead > NCLsample.events
-
-       #echo "Step - to merge FPKM and TPM"
-       ## remove junction side overlap in more than one geneID ##
-       cat NCLsample.events | awk '$8!~/[,]/ {print $0}' | awk '{print $8 "\t" $0}' | sort  -k1,1 > NCLsample.events.tmp 
-       join NCLsample.events.tmp ENSG_GeneID_RSEM.txt.tmp  | cut -f 2- -d' ' > NCLsample_RSEM.txt
-
-       #echo "Step - to calculate SJpj using CalSJpj.sh"
-       ## generate SJ_pj.txt and gene_pmed.txt ##
-       $BASEDIR/bin/CalSJpj.sh intra/$getOne $geneGTF $BASEDIR1\/$OPN\/STAR_RSEM_out\/SJ.out.tab
-
-       #echo "Step - to calculate pj and pmed"
-       ### merge SJ_pj ###
-       cat SJ_pj.txt | awk '{print $1"_"$2 "\t" $4}' | sort -k1,1 | uniq > SJ_pj.tmp 
-       cat gene_pmed.txt | sort -k1,1 | uniq > gene_pmed.tmp
-       ## one geneID ##
-       cat NCLsample_RSEM.txt | awk '{print $1"_"$2"_"$8 "\t" $0}' | sort -k1,1 > NCLsample_RSEM.txt.tmp1
-       join NCLsample_RSEM.txt.tmp1 SJ_pj.tmp | cut -f 2- -d ' ' | sort -k1,1 -k2,2n | uniq  > NCLsample_RSEM_pj.tmp1
-       join NCLsample_RSEM.txt.tmp1 SJ_pj.tmp -v1 | cut -f 2- -d ' ' | sort -k1,1 -k2,2n | uniq | awk '{print $0 " " "0"}' > NCLsample_RSEM_pj.tmp2
-       cat NCLsample_RSEM_pj.tmp1 NCLsample_RSEM_pj.tmp2 | awk '{print $1"_"$5"_"$8 "\t" $0}' | sort -k1,1 > NCLsample_RSEM_pj.tmp3
-       join NCLsample_RSEM_pj.tmp3 SJ_pj.tmp | cut -f 2- -d ' ' | sort -k1,1 -k2,2n | uniq > NCLsample_RSEM_pj.tmp4
-       join NCLsample_RSEM_pj.tmp3 SJ_pj.tmp -v1 | cut -f 2- -d ' ' | sort -k1,1 -k2,2n | uniq | awk '{print $0 " " "0"}' > NCLsample_RSEM_pj.tmp5
-       cat NCLsample_RSEM_pj.tmp4 NCLsample_RSEM_pj.tmp5 | sort -k1,1 -k2,2n | uniq > NCLsample_RSEM_pj.txt        
-
-       cat NCLsample_RSEM_pj.txt | awk '{print $8 "\t" $0}' | sort -k1,1 | uniq > NCLsample_RSEM_pj.txt.tmp1
-       join NCLsample_RSEM_pj.txt.tmp1 gene_pmed.tmp | cut -f 2- -d ' '| sort -k1,1 -k2,2n | uniq > NCLsample_RSEM_pj_pmed.tmp1
-       join NCLsample_RSEM_pj.txt.tmp1 gene_pmed.tmp -v1 | cut -f 2- -d ' '| sort -k1,1 -k2,2n | uniq | awk '{print $0 " " "0"}' > NCLsample_RSEM_pj_pmed.tmp2
-       cat NCLsample_RSEM_pj_pmed.tmp1 NCLsample_RSEM_pj_pmed.tmp2 | sort -k1,1 -k2,2n | uniq > NCLsample_RSEM_pj_pmed.txt
-
-       #echo "Step - to examine out of circular using OutOfCircular.sh"
-       ## generate OC.final ##
-       $BASEDIR/bin/OutOfCircular.sh intra/$getOne $BASEDIR1\/$OPN\/STAR_RSEM_out\/Chimeric.out.junction $BASEDIR1\/$OPN\/STAR_RSEM_out\/Chimeric.out.sam $BASEDIR1\/$OPN\/STAR_RSEM_out\/Log.final.out
-       cat OC.final | awk '{print $1"_"$2"_"$3"_"$4"_"$5"_"$6 "\t" $8}' | sort -k1 > OC.final.tmp
-       cat NCLsample_RSEM_pj_pmed.txt | awk '{print $1"_"$2"_"$3"_"$4"_"$5"_"$6 "\t" $0}' | sort -k1 > NCLsample_RSEM_pj_pmed_OC.txt.tmp1
-       join NCLsample_RSEM_pj_pmed_OC.txt.tmp1 OC.final.tmp | cut -f 2- -d ' ' | sort -k1,1 -k2,2n | uniq > NCLsample_RSEM_pj_pmed_OC.txt.tmp2 
-       join NCLsample_RSEM_pj_pmed_OC.txt.tmp1 OC.final.tmp -v1 | cut -f 2- -d ' ' | sort -k1,1 -k2,2n | uniq | awk '{print $0 " " "0"}' > NCLsample_RSEM_pj_pmed_OC.txt.tmp3
-       cat NCLsample_RSEM_pj_pmed_OC.txt.tmp2 NCLsample_RSEM_pj_pmed_OC.txt.tmp3 | sort -k1,1 -k2,2n | uniq > NCLsample_RSEM_pj_pmed_OC.txt
-
-       if [[ -n "$SCE" ]]; then 
-          #echo "Step - to determine donor/acceptor side within SCE"
-          paste <(cat NCLsample_RSEM_pj_pmed_OC.txt | awk '{print $1 "\t" $2-1 "\t" $2}')  <(cat NCLsample_RSEM_pj_pmed_OC.txt | tr ' ' '_')  > NCLsample_RSEM_pj_pmed_OC_SCE.tmp1
-          bedtools intersect -a NCLsample_RSEM_pj_pmed_OC_SCE.tmp1 -b $SCE -wa | sort | uniq | awk '{print $4"_1"}' > NCLsample_RSEM_pj_pmed_OC_SCE.tmp2
-          bedtools intersect -a NCLsample_RSEM_pj_pmed_OC_SCE.tmp1 -b $SCE -v | sort | uniq | awk '{print $4"_0"}' > NCLsample_RSEM_pj_pmed_OC_SCE.tmp3
-          cat NCLsample_RSEM_pj_pmed_OC_SCE.tmp2 NCLsample_RSEM_pj_pmed_OC_SCE.tmp3 | tr '_' ' ' > NCLsample_RSEM_pj_pmed_OC_SCE.tmp4
-          paste <(cat NCLsample_RSEM_pj_pmed_OC_SCE.tmp4 | awk '{print $4 "\t" $5-1 "\t" $5}')  <(cat NCLsample_RSEM_pj_pmed_OC_SCE.tmp4 | tr ' ' '_')  > NCLsample_RSEM_pj_pmed_OC_SCE.tmp5
-          bedtools intersect -a NCLsample_RSEM_pj_pmed_OC_SCE.tmp5 -b $SCE -wa  | sort | uniq | awk '{print $4"_1"}' > NCLsample_RSEM_pj_pmed_OC_SCE.tmp6
-          bedtools intersect -a NCLsample_RSEM_pj_pmed_OC_SCE.tmp5 -b $SCE -v  | sort | uniq| awk '{print $4"_0"}' > NCLsample_RSEM_pj_pmed_OC_SCE.tmp7
-          cat NCLsample_RSEM_pj_pmed_OC_SCE.tmp6 NCLsample_RSEM_pj_pmed_OC_SCE.tmp7 | tr '_' ' ' > NCLsample_RSEM_pj_pmed_OC_SCE.txt
-          echo "Chr_donor Pos_donor Strand_donor Chr_acceptot Pos_acceptor Strand_acceptor JunctionRead Gene_donor Gene_acceptor LinearRead_donor LinearRead_acceptor RPM_totalRead RPM_mappedRead CF NCLratio FPKM TPM pj_dornor pj_acceptor pmedian OC SCE_donor SCE_acceptor" > HeaderPost.txt
-          cat HeaderPost.txt NCLsample_RSEM_pj_pmed_OC_SCE.txt | tr ' ' \\t > intra_Characteristics/$getOneName.final
-       fi
-
-       if [[ -z "$SCE" ]]; then 
-          echo "Chr_donor Pos_donor Strand_donor Chr_acceptot Pos_acceptor Strand_acceptor JunctionRead Gene_donor Gene_acceptor LinearRead_donor LinearRead_acceptor RPM_totalRead RPM_mappedRead CF NCLratio FPKM TPM pj_dornor pj_acceptor pmedian OC" > HeaderPost.txt
-          cat HeaderPost.txt NCLsample_RSEM_pj_pmed_OC.txt | tr ' ' \\t > intra_Characteristics/$getOneName.final
-       fi
-   done
+      cat $BASEDIR1\/$OPN\/intraMerged.result | awk '{print $1 "\t" $2 "\t" $3 "\t" $4 "\t" $5 "\t" $6 "\t" $(7+k)}' k=$i > intraMerged_toolOne.tmp1
+      toolOneName=$(cat intraMerged_toolOne.tmp1 | head -n1  | awk '{print $7}') 
+      #echo $toolOneName
+      cat intraMerged_toolOne.tmp1 | sed -e '1d' | awk '$7 > 0 {print $1":"$2":"$3":"$4":"$5":"$6 "\t" $7}' | sort -k1,1 | uniq > intraMerged_toolOne.tmp2
+      cat intraMerged_toolOne.tmp2 | awk '{print $1 "\t" ($2/T)*1000000 "\t" ($2/M)*1000000}' T=$totalRead  M=$UMRead | sort -k1,1 > intraMerged_toolOne.tmp3
+      join -o 1.1 1.2 2.2 2.3 intraMerged_toolOne.tmp2 intraMerged_LR.tmp -a1 -e nd | sort -k1,1 | uniq > intraMerged_toolOne.tmp4.1
+      cat intraMerged_toolOne.tmp4.1 | sed 's/nd/0/g' | awk '{print $1 "\t" $2/($3+$4+1) "\t" (2*$2)/(2*$2+$3+$3)}' | sort -k1,1  | uniq  > intraMerged_toolOne.tmp4
+      
+      join -o 1.1 1.2 2.2 2.3 intraMerged_toolOne.tmp2 intraMerged_toolOne.tmp3 -a1 -e nd | tr ' ' \\t > intraMerged_toolOne.tmp5.1
+      join -o 1.1 1.2 1.3 1.4 2.2 2.3 intraMerged_toolOne.tmp5.1 intraMerged_toolOne.tmp4 -a1 -e nd |tr ' ' \\t > intraMerged_toolOne.tmp5
+      
+      paste <(cat intraMerged.tmp5.1 | awk '{print $1":"$2":"$3":"$4":"$5":"$6}') <(cat intraMerged.tmp5.1 | tr '\t' ':') | sort -k1,1 | uniq > intraMerged.tmp6 
+      cat intraMerged_toolOne.tmp5 | awk '{print $1 "\t" $2":"$3":"$4":"$5":"$6}' | sort -k1,1 | uniq  > intraMerged_toolOne.tmp6.1
+      join -o 1.2 2.2 intraMerged.tmp6 intraMerged_toolOne.tmp6.1 -a1 -e nd:nd:nd:nd:nd | sort -k1,1 | tr ' ' \\t | tr ':' \\t >  intraMerged.tmp7
+      echo $toolOneName"_JunctionRead" $toolOneName"_RPM_total" $toolOneName"_RPM_mapped" $toolOneName"_CF" $toolOneName"_RNCL" | tr ' ' \\t > toolHeader.tmp
+      paste Header.tmp1.1 toolHeader.tmp | tr ' ' \\t > Header.tmp2
+      cat Header.tmp2 > Header.tmp1.1
+      cat intraMerged.tmp7 > intraMerged.tmp5.1
+  done 
+  cat Header.tmp2 intraMerged.tmp7 > $BASEDIR1\/$OPN\/intraMerged_characteristic.result
 
 fi
 
@@ -299,158 +315,137 @@ if [[ -n "$FUSION" ]]; then
 
     rm -r -f  $BASEDIR1\/$OPN\/comparison\/inter
     mkdir $BASEDIR1\/$OPN\/comparison\/inter
+
     cd $BASEDIR1\/$OPN\/comparison
     ## inter results ##
-    echo ""
-    echo "Step: adjusting inter results to exon boundary"
+    echo "Step: adjust the junction coordinates of inter results into exon boundaries"
     ls $FUSION > sampleinter.tmp 
     sampleinter_num=$(cat sampleinter.tmp | wc -l)
-    echo "inter sample number: "$sampleinter_num
     for i in $(seq 1 "$sampleinter_num")
     do 
-       getOne=$(cat sampleinter.tmp | awk 'NR==k {print $1}' k=$i)
-        echo $getOne
-        getOneName=$(echo $getOne | sed 's/[.]/\t/g' | awk '{print $1}') 
-        cat $FUSION/$getOne | awk '$1~/^chr[0-9XY]*$/ {print $0}' | awk '$3~/^chr[0-9XY]*$/ {print $0}' | awk '$2~/^[0-9]*$/ {print $0}'| awk '$4~/^[0-9]*$/ {print $0}'| awk '{print $1 "\t" $2-1 "\t" $2 "\t" $1"_"$2"_"$3"_"$4"_"$5}' | sort -k1,1 -k2,2n | uniq  > inter_tmp1.bed
-        bedtools intersect -a inter_tmp1.bed -b exons_boundary.bed -wa -wb | awk '{print $4 "\t" $8}' | sed 's/_/\t/g' | awk '{print $3 "\t" $4-1 "\t" $4 "\t" $1"_"$2"_"$3"_"$4"_"$5"_"$6"_"$7"_"$8"_"$9}' | sort -k1,1 -k2,2n | uniq > inter_tmp2.bed
-        bedtools intersect -a inter_tmp2.bed -b exons_boundary.bed  -wa -wb | awk '{print $4 "\t" $8}' | sed 's/_/\t/g' | awk '{print $6 "\t" $7 "\t" $8 "\t" $10 "\t" $11 "\t" $12 "\t" $5 "\t" $9 "\t" $13}' | sort -k1,1 -k2,2n | uniq | awk '$8!=$9 {print $0}' > inter_tmp1.result
-        cat inter_tmp1.result | awk '{if($2 >= $5) print $0; else if($2 < $5) print $4 "\t" $5 "\t" $6 "\t" $1 "\t" $2 "\t" $3 "\t" $7 "\t" $9 "\t" $8}' | sed 's/+/sense/g' | sed 's/-/anti/g'| sort -k1,1 -k2,2n | uniq > inter_tmp2.result
-        cat inter_tmp2.result | awk '{print $1"_"$2"_"$3"_"$4"_"$5"_"$6 "\t" $7}' | sort | bedtools groupby -g 1 -c 2 -o sum > inter_tmp3.result
-        cat inter_tmp2.result | awk '{print $1"_"$2"_"$3"_"$4"_"$5"_"$6 "\t" $8}' | sort | uniq | bedtools groupby -g 1 -c 2 -o collapse > inter_tmp4.result
-        cat inter_tmp2.result | awk '{print $1"_"$2"_"$3"_"$4"_"$5"_"$6 "\t" $9}' | sort | uniq | bedtools groupby -g 1 -c 2 -o collapse > inter_tmp5.result
-        join inter_tmp3.result inter_tmp4.result | sort > inter_tmp6.result
-        join inter_tmp6.result inter_tmp5.result| sed 's/_/\t/g' | sed 's/sense/+/g' | sed 's/anti/-/g' | tr ' ' \\t | sort -k1,1 -k2,2n | uniq > inter\/$getOneName.fusionEB
-     done
+     getOne=$(cat sampleinter.tmp | awk 'NR==k {print $1}' k=$i)
+     #echo $getOne
+     getOneName=$(echo $getOne | sed 's/[.]/\t/g' | awk '{print $1}') 
+     cat $FUSION/$getOne | sort -k1,1 -k2,2n | awk '$1~/^chr[0-9XY]*$/ {print $0}' | awk '$3~/^chr[0-9XY]*$/ {print $0}' | awk '$2~/^[0-9]*$/ {print $0}'| awk '$4~/^[0-9]*$/ {print $0}' | awk '{print $1 "\t" $2-1 "\t" $2 "\t" $1":"$2":"$3":"$4":"$5}' | sort -k1,1 -k2,2n | uniq  > inter_tmp1.bed
+     bedtools intersect -a inter_tmp1.bed -b exons_boundary.bed -wa -wb | awk '{print $4 "\t" $8}' | sed 's/:/\t/g' | awk '{print $3 "\t" $4-1 "\t" $4 "\t" $1":"$2":"$3":"$4":"$5":"$6":"$7":"$8":"$9}' | sort -k1,1 -k2,2n | uniq > inter_tmp2.bed
+     bedtools intersect -a inter_tmp2.bed -b exons_boundary.bed  -wa -wb | awk '{print $4 "\t" $8}' | sed 's/:/\t/g' | awk '{print $6 "\t" $7 "\t" $8 "\t" $10 "\t" $11 "\t" $12 "\t" $5 "\t" $9 "\t" $13}'| sort -k1,1 -k2,2n | uniq | awk '$8!=$9 {print $0}' > inter_tmp.result
+     cat inter_tmp.result | sed 's/+/sense/g' | sed 's/-/anti/g' | awk '{print $1":"$2":"$3":"$4":"$5":"$6 "\t" $7}' | sort -k1,1 -k2,2n | uniq | bedtools groupby -g 1 -c 2 -o sum | sort | uniq > inter_tmp1.result
+     cat inter_tmp.result | sed 's/+/sense/g' | sed 's/-/anti/g' | awk '{print $1":"$2":"$3":"$4":"$5":"$6 "\t" $8}' | sort -k1,1 -k2,2n | uniq | bedtools groupby -g 1 -c 2 -o collapse | sort | uniq > inter_tmp2.result
+     cat inter_tmp.result | sed 's/+/sense/g' | sed 's/-/anti/g' | awk '{print $1":"$2":"$3":"$4":"$5":"$6 "\t" $9}' | sort -k1,1 -k2,2n | uniq | bedtools groupby -g 1 -c 2 -o collapse | sort | uniq > inter_tmp3.result
+     cat inter_tmp.result | sed 's/+/sense/g' | sed 's/-/anti/g' | awk '{print $1":"$2":"$3":"$4":"$5":"$6 }' | sort | uniq > inter_tmp4.result
+     join -o 1.1 2.2 inter_tmp4.result inter_tmp1.result -a1 -e nd | tr ' ' \\t | sort  | uniq > inter_tmp5.result
+     join -o 1.1 1.2 2.2 inter_tmp5.result inter_tmp2.result -a1 -e nd | tr ' ' \\t | sort  | uniq > inter_tmp6.result
+     join -o 1.1 1.2 1.3 2.2 inter_tmp6.result inter_tmp3.result -a1 -e nd | tr ' ' \\t | sort  | sed 's/sense/+/g' | sed 's/anti/-/g' | sed 's/:/\t/g' > inter\/$getOneName.fusionEB  
+    done
 
     ## merge inter ##
-    echo ""
-    echo "Step: merging inter results"
+    echo "Step: to merge inter results to interMerged.result"
     cd  $BASEDIR1\/$OPN
+    
     cat comparison/inter/*.fusionEB | sort -k1,1 -k2,2n | uniq  > all.fusionEB
     cat all.fusionEB | awk '{print $1":"$2":"$3":"$4":"$5":"$6 "\t" $8":"$9}' | sort -k1 | uniq > all.fusionEB.tmp 
-
+    
     ls comparison/inter > sampleinter 
     sampleinter_num=$(cat sampleinter | wc -l)
-    echo "inter sample number: "$sampleinter_num
+    echo "Number of inter tools: "$sampleinter_num
     header=$(echo "Chr" "\t" "Pos" "\t" "Strand" "\t" "Chr" "\t" "Pos" "\t" "Strand" "\t" "Genename" "\t" "Genename")
     sampleinter_num=$(echo $sampleinter_num)
     for i in $(seq 1 $sampleinter_num)
     do 
         getOne=$(cat sampleinter | awk 'NR==k {print $1}' k=$i)
-        echo $getOne
+        echo $i"." $getOne
         getOneName=$(echo $getOne | sed 's/[.]/\t/g' | awk '{print $1}')
         header=$(echo $header "\t" $getOneName)
-        cat comparison/inter/$getOne | awk '{print $1":"$2":"$3":"$4":"$5":"$6 "\t" 1}' | sort -k1 > $getOneName.fusionEB.tmp
+        cat comparison/inter/$getOne | awk '{print $1":"$2":"$3":"$4":"$5":"$6 "\t" $7}' | sort -k1 > $getOneName.fusionEB.tmp
         join -o 1.1 1.2 2.2 all.fusionEB.tmp  $getOneName.fusionEB.tmp -a1 -e0 | awk '{print $1 "\t" $2":"$3}' | sort -k1 | uniq > all.fusionEB_2.tmp
         cat all.fusionEB_2.tmp > all.fusionEB.tmp
     done
-
-    cat all.fusionEB.tmp  | sed 's/:/\t/g' | tr ' ' \\t > interMerged.tmp
-    cat <(echo $header) interMerged.tmp > interMerged.result
-    cut  -d$'\t' -f 7 --complement interMerged.result > interMerged.result.tmp
-    $BASEDIR/bin/graphic.R interMerged.result.tmp inter
+    
+    cat all.fusionEB.tmp  | sed 's/:/\t/g' | tr ' ' \\t > $BASEDIR1\/$OPN\/comparison\/interMerged.out
+    cat <(echo $header) $BASEDIR1\/$OPN\/comparison\/interMerged.out > interMerged.result
+    echo "Step: to graph interMerged.result"
+    $BASEDIR1\/bin\/graphic_inter.R interMerged.result inter
     rm -r -f *.tmp
     rm -r -f all.fusionEB
     rm -r -f sampleinter
     
-   
-    echo "Step - Characteristics of inter-NCL events"
     cd $BASEDIR1\/$OPN\/comparison
-    rm -r -f $BASEDIR1\/$OPN\/comparison\/inter_Characteristics
-    mkdir $BASEDIR1\/$OPN\/comparison\/inter_Characteristics
+    cat interMerged.out | awk '{print $7 "\t" $1":"$2":"$3":"$4":"$5":"$6":"$7":"$8 }' | sort -k1,1 | uniq > interMerged.tmp1
+    echo "Step: to add  TPM and FPKM of its host gene"
+    ## to add TPM and FPKM ##
+    join -o 1.2 2.2 2.3 interMerged.tmp1 ENSG_GeneID_RSEM.txt.tmp -a1 -e nd | sort | uniq | tr ' ' \\t  > interMerged.tmp1.TPM_FPKM
+    paste <(cat interMerged.tmp1.TPM_FPKM | tr ':' \\t | awk '{print $8}') <(cat interMerged.tmp1.TPM_FPKM | tr '\t' ':')  | sort  -k1,1 > interMerged.tmp2.TPM_FPKM
+    join -o 1.2 2.2 2.3 interMerged.tmp2.TPM_FPKM ENSG_GeneID_RSEM.txt.tmp -a1 -e nd | sort | uniq | tr ' ' \\t  | tr ':' \\t > interMerged.tmp.TPM_FPKM
+    
+    echo "Step: to calculate SJpj using CalSJpj.sh"
+    ## generate SJ_pj.txt and gene_pmed.txt ##
+    $BASEDIR1/bin/CalSJpj.sh interMerged.out $geneGTF $BASEDIR1\/$OPN\/STAR_RSEM_out\/SJ.out.tab
+    cat SJ_pj.txt > inter_SJ_pj.txt
+    cat gene_pmed.txt > inter_gene_pmed.txt
+     
+    paste <(cat interMerged.tmp.TPM_FPKM | awk '{print $1"_"$2}') <(cat interMerged.tmp.TPM_FPKM | tr '\t' ':') | sort -k1,1 | uniq > interMerged.tmp2.1
+    join -o 1.2 2.2 interMerged.tmp2.1 SJ_exon.count -a1 -e nd | tr ' ' \\t | tr ':' \\t | sort | uniq > interMerged.tmp2.2
+    paste <(cat interMerged.tmp2.2 | awk '{print $4"_"$5}') <(cat interMerged.tmp2.2 | tr '\t' ':') | sort -k1,1 | uniq > interMerged.tmp2.3
+    join -o 1.2 2.2 interMerged.tmp2.3 SJ_exon.count -a1 -e nd | tr ' ' \\t | tr ':' \\t | sort | uniq > interMerged.tmp2
+    
+    cat inter_SJ_pj.txt | awk '{print $1"_"$2 "\t" $4}' | sort | uniq > inter_SJ_pj.tmp1
+    paste <(cat interMerged.tmp2 | awk '{print $1"_"$2"_"$7}') <(cat interMerged.tmp2 | tr '\t' ':') | sort -k1,1 > interMerged.tmp3.1 
+    join -o 1.2 2.2 interMerged.tmp3.1 inter_SJ_pj.tmp1 -a1 -e nd | sort -k1 -rnk2 | awk '!x[$1]++' | tr ' ' \\t | tr ':' \\t | sort | uniq > interMerged.tmp3.2
+    paste <(cat interMerged.tmp3.2 | awk '{print $4"_"$5"_"$8}') <(cat interMerged.tmp3.2 | tr '\t' ':') | sort -k1,1 | uniq > interMerged.tmp3.3
+    join -o 1.2 2.2 interMerged.tmp3.3 inter_SJ_pj.tmp1 -a1 -e nd | sort -k1 -rnk2 | awk '!x[$1]++' | tr ' ' \\t | tr ':' \\t | sort | uniq > interMerged.tmp3
+    paste <(cat interMerged.tmp3 | awk '{print $7}') <(cat interMerged.tmp3 | tr '\t' ':') | sort -k1,1 | uniq > interMerged.tmp4.1
+    join -o 1.2 2.2 interMerged.tmp4.1 inter_gene_pmed.txt -a1 -e nd  | tr ' ' \\t | tr ':' \\t |  sort -k1,1 | uniq > interMerged.tmp4.2
+    paste <(cat interMerged.tmp4.2 | awk '{print $8}') <(cat interMerged.tmp4.2 | tr '\t' ':') | sort -k1,1 | uniq > interMerged.tmp4.3
+    join -o 1.2 2.2 interMerged.tmp4.3 inter_gene_pmed.txt -a1 -e nd | tr ' ' \\t | tr ':' '\t' | sort -k1,1 | uniq > interMerged.tmp4
 
-    ls inter > sampleFusionEB.tmp 
-    sampleFusionEB_num=$(cat sampleFusionEB.tmp | wc -l)
-    echo "inter sample number: "$sampleFusionEB_num
-
-    for i in $(seq 1 "$sampleFusionEB_num")
-    do 
-        getOne=$(cat sampleFusionEB.tmp | awk 'NR==k {print $1}' k=$i)
-        echo $getOne
-        getOneName=$(echo $getOne | sed 's/[.]/\t/g' | awk '{print $1}') 
-        #echo "Step - to RPM_MappedReads and RPM_totalReads"
-        cat inter/$getOne > NCLsample.inter
-        cat NCLsample.inter | awk '{print $1"_"$2 "\t" $1"_"$2"_"$3"_"$4"_"$5"_"$6"_"$7"_"$8"_"$9}' | sort -k1,1 > NCLsample.inter.pre1
-        join -o 1.1 1.2 2.2 NCLsample.inter.pre1 SJ_exon.count -a1 -e0 | awk '{print $2 "\t" $3}' | sed 's/_/\t/g' | awk '{print $4"_"$5 "\t" $1"_"$2"_"$3"_"$4"_"$5"_"$6"_"$7"_"$8"_"$9"_"$10}' | sort -k1,1 > NCLsample.inter.pre2
-        join -o 1.1 1.2 2.2 NCLsample.inter.pre2 SJ_exon.count -a1 -e0 | awk '{print $2 "\t" $3}' | sed 's/_/\t/g' > NCLsampleinter.count
-        cat NCLsampleinter.count | awk '{print $0 "\t" ($7/M)*1000000 "\t" ($7/T)*1000000 }' T=$totalRead  M=$UMRead > NCLsampleinter.events
-
-        #echo "Step - to merge FPKM and TPM"
-        ## one geneID ##
-        cat NCLsampleinter.events | awk '$8!~/[,]/ {print $0}' | awk '{print $8 "\t" $0}' | sort  -k1,1 > NCLsampleinter.events.tmp1 
-        join NCLsampleinter.events.tmp1 ENSG_GeneID_RSEM.txt.tmp  | cut -f 2- -d' ' > NCLsampleinter_RSEM.tmp1
-        cat NCLsampleinter_RSEM.tmp1 | awk '$9!~/[,]/ {print $0}' | awk '{print $9 "\t" $0}' | sort  -k1,1 > NCLsampleinter.events.tmp2 
-        join NCLsampleinter.events.tmp2 ENSG_GeneID_RSEM.txt.tmp  | cut -f 2- -d' ' > NCLsampleinter_RSEM.txt
-
-        #echo "Step - to calculate SJpj using CalSJpj.sh"
-        ## generate SJ_pj.txt and gene_pmed.txt ##
-        $BASEDIR/bin/CalSJpj.sh inter/$getOne $geneGTF $BASEDIR1\/$OPN\/STAR_RSEM_out\/SJ.out.tab
+     if [[ -z "$SCE" ]]; then 
+       echo "Chr_donor Pos_donor Strand_donor Chr_acceptot Pos_acceptor Strand_acceptor GeneName_donor GeneName_acceptor TPM_donor FPKM_donor TPM_acceptor FPKM_acceptor LinearRead_donor LinearRead_acceptor P_D P_A Pmedian_donor Pmedian_acceptor" | tr ' ' \\t > Header.tmp1  
+    fi
 
 
-        #echo "Step - to calculate pj and pmed"
-        ## merge SJ_pj ##
-        cat SJ_pj.txt | awk '{print $1"_"$2 "\t" $4}' | sort -k1,1 | uniq > SJ_pj.tmp 
-        cat gene_pmed.txt | sort -k1,1 | uniq > gene_pmed.tmp
+   if [[ -n "$SCE" ]]; then 
+      echo "Step: to determine donor/acceptor side within SCE"
+      paste <(cat interMerged.out | awk '{print $1 "\t" $2-1 "\t" $2}')  <(cat interMerged.out | awk '{print $1":"$2":"$3":"$4":"$5":"$6}')  > interMerged_SCE.tmp1
+      bedtools intersect -a interMerged_SCE.tmp1 -b $SCE -wa | sort | uniq | awk '{print $4":1"}' > interMerged_SCE.tmp2
+      bedtools intersect -a interMerged_SCE.tmp1 -b $SCE -v | sort | uniq | awk '{print $4":0"}' > interMerged_SCE.tmp3
+      cat interMerged_SCE.tmp2 interMerged_SCE.tmp3 | tr ':' '\t' > interMerged_SCE.tmp4
+      paste <(cat interMerged_SCE.tmp4 | awk '{print $4 "\t" $5-1 "\t" $5}')  <(cat interMerged_SCE.tmp4 | tr '\t' ':')  > interMerged_SCE.tmp5
+      bedtools intersect -a interMerged_SCE.tmp5 -b $SCE -wa  | sort | uniq | awk '{print $4":1"}' > interMerged_SCE.tmp6
+      bedtools intersect -a interMerged_SCE.tmp5 -b $SCE -v  | sort | uniq| awk '{print $4":0"}' > interMerged_SCE.tmp7
+      cat interMerged_SCE.tmp6 interMerged_SCE.tmp7 | tr ':' '\t'  | sort -k1,1 -k2,2n > interMerged_tmp_SCE.txt
+      paste <(cat interMerged.tmp4 | awk '{print $1"_"$2"_"$3"_"$4"_"$5"_"$6}') <(cat interMerged.tmp4 | tr '\t' ':') | sort -k1,1 | uniq > interMerged.tmp5.1
+      cat interMerged_tmp_SCE.txt | awk '{print $1"_"$2"_"$3"_"$4"_"$5"_"$6 "\t" $7":"$8 }' | sort -k1,1 | uniq > interMerged_SCE.txt.tmp1
+      join -o 1.2 2.2 interMerged.tmp5.1 interMerged_SCE.txt.tmp1 -a1 -e nd | tr ' ' \\t | tr ':' \\t > interMerged.tmp4
+      echo "Chr_donor Pos_donor Strand_donor Chr_acceptot Pos_acceptor Strand_acceptor GeneName_donor GeneName_acceptor TPM_donor FPKM_donor TPM_acceptor FPKM_acceptor LinearRead_donor LinearRead_acceptor P_D P_A Pmedian_donor Pmedian_acceptor SCE_D SCE_A" | tr ' ' \\t > Header.tmp1  
+   fi
 
-        cat NCLsampleinter_RSEM.txt | awk '{print $1"_"$2"_"$8 "\t" $0}' | sort -k1,1 > NCLsampleinter_RSEM.txt.tmp1
-        join NCLsampleinter_RSEM.txt.tmp1 SJ_pj.tmp | cut -f 2- -d ' ' | sort -k1,1 -k2,2n | uniq  > NCLsampleinter_RSEM_pj.tmp1
-        join NCLsampleinter_RSEM.txt.tmp1 SJ_pj.tmp -v1 | cut -f 2- -d ' ' | sort -k1,1 -k2,2n | uniq | awk '{print $0 " " "0"}' > NCLsampleinter_RSEM_pj.tmp2
-        cat NCLsampleinter_RSEM_pj.tmp1 NCLsampleinter_RSEM_pj.tmp2 | awk '{print $4"_"$5"_"$9 "\t" $0}' | sort -k1,1 > NCLsampleinter_RSEM_pj.tmp3
-        join NCLsampleinter_RSEM_pj.tmp3 SJ_pj.tmp | cut -f 2- -d ' ' | sort -k1,1 -k2,2n | uniq > NCLsampleinter_RSEM_pj.tmp4
-        join NCLsampleinter_RSEM_pj.tmp3 SJ_pj.tmp -v1 | cut -f 2- -d ' ' | sort -k1,1 -k2,2n | uniq | awk '{print $0 " " "0"}' > NCLsampleinter_RSEM_pj.tmp5
-        cat NCLsampleinter_RSEM_pj.tmp4 NCLsampleinter_RSEM_pj.tmp5 | sort -k1,1 -k2,2n | uniq > NCLsampleinter_RSEM_pj.txt        
-
-        cat NCLsampleinter_RSEM_pj.txt | awk '{print $8 "\t" $0}' | sort -k1,1 | uniq > NCLsampleinter_RSEM_pj.txt.tmp1
-        join  NCLsampleinter_RSEM_pj.txt.tmp1 gene_pmed.tmp | cut -f 2- -d ' '| sort -k1,1 -k2,2n | uniq > NCLsampleinter_RSEM_pj_pmed.tmp1
-        join  NCLsampleinter_RSEM_pj.txt.tmp1 gene_pmed.tmp -v1 | cut -f 2- -d ' '| sort -k1,1 -k2,2n | uniq | awk '{print $0 " " "0"}' > NCLsampleinter_RSEM_pj_pmed.tmp2
-        cat NCLsampleinter_RSEM_pj_pmed.tmp1 NCLsampleinter_RSEM_pj_pmed.tmp2 | sort -k1,1 -k2,2n | uniq > NCLsampleinter_RSEM_pj_pmed.tmp3
-        cat NCLsampleinter_RSEM_pj_pmed.tmp3 | awk '{print $9 "\t" $0}' | sort -k1,1 | uniq > NCLsampleinter_RSEM_pj_pmed.tmp4
-        join  NCLsampleinter_RSEM_pj_pmed.tmp4 gene_pmed.tmp | cut -f 2- -d ' '| sort -k1,1 -k2,2n | uniq > NCLsampleinter_RSEM_pj_pmed.tmp5
-        join  NCLsampleinter_RSEM_pj_pmed.tmp4 gene_pmed.tmp -v1 | cut -f 2- -d ' '| sort -k1,1 -k2,2n | uniq | awk '{print $0 " " "0"}' > NCLsampleinter_RSEM_pj_pmed.tmp6
-        cat NCLsampleinter_RSEM_pj_pmed.tmp5 NCLsampleinter_RSEM_pj_pmed.tmp6 | sort -k1,1 -k2,2n | uniq > NCLsampleinter_RSEM_pj_pmed.txt
-
-        if [[ -n "$SCE" ]]; then 
-           #echo "Step - to determine donor/acceptor side within SCE"
-           paste <(cat NCLsampleinter_RSEM_pj_pmed.txt | awk '{print $1 "\t" $2-1 "\t" $2}')  <(cat NCLsampleinter_RSEM_pj_pmed.txt | tr ' ' '_')  > NCLsampleinter_RSEM_pj_pmed_SCE.tmp1
-           bedtools intersect -a NCLsampleinter_RSEM_pj_pmed_SCE.tmp1 -b $SCE -wa | sort | uniq | awk '{print $4"_1"}' > NCLsampleinter_RSEM_pj_pmed_SCE.tmp2
-           bedtools intersect -a NCLsampleinter_RSEM_pj_pmed_SCE.tmp1 -b $SCE -v | sort | uniq | awk '{print $4"_0"}' > NCLsampleinter_RSEM_pj_pmed_SCE.tmp3
-           cat NCLsampleinter_RSEM_pj_pmed_SCE.tmp2 NCLsampleinter_RSEM_pj_pmed_SCE.tmp3 | tr '_' ' ' > NCLsampleinter_RSEM_pj_pmed_SCE.tmp4
-           paste <(cat NCLsampleinter_RSEM_pj_pmed_SCE.tmp4 | awk '{print $4 "\t" $5-1 "\t" $5}')  <(cat NCLsampleinter_RSEM_pj_pmed_SCE.tmp4 | tr ' ' '_')  > NCLsampleinter_RSEM_pj_pmed_SCE.tmp5
-           bedtools intersect -a NCLsampleinter_RSEM_pj_pmed_SCE.tmp5 -b $SCE -wa  | sort | uniq | awk '{print $4"_1"}' > NCLsampleinter_RSEM_pj_pmed_SCE.tmp6
-           bedtools intersect -a NCLsampleinter_RSEM_pj_pmed_SCE.tmp5 -b $SCE -v  | sort | uniq| awk '{print $4"_0"}' > NCLsampleinter_RSEM_pj_pmed_SCE.tmp7
-           cat NCLsampleinter_RSEM_pj_pmed_SCE.tmp6 NCLsampleinter_RSEM_pj_pmed_SCE.tmp7 | tr '_' ' ' > NCLsampleinter_RSEM_pj_pmed_SCE.txt
-           echo "Chr_donor Pos_donor Strand_donor Chr_acceptor Pos_acceptor Strand_acceptor JunctionRead Gene_donor Gene_acceptor LinearRead_donor LinearRead_acceptor RPM_totalRaed RPM_mappedRead FPKM_donor TPM_donor FPKM_acceptor TPM_acceptor pj_dornor pj_acceptor pmedian_donor pmedian_acceptor SCE_donor SCE_acceptor" > HeaderPostInter.txt
-           cat HeaderPostInter.txt NCLsampleinter_RSEM_pj_pmed_SCE.txt | tr ' ' \\t > inter_Characteristics/$getOneName.final
-       fi
-
-       if [[ -z "$SCE" ]]; then 
-          echo "Chr_donor Pos_donor Strand_donor Chr_acceptor Pos_acceptor Strand_acceptor JunctionRead Gene_donor Gene_acceptor LinearRead_donor LinearRead_acceptor RPM_totalRaed RPM_mappedRead FPKM_donor TPM_donor FPKM_acceptor TPM_acceptor pj_dornor pj_acceptor pmedian_donor pmedian_acceptor" > HeaderPostInter.txt
-          cat HeaderPostInter.txt NCLsampleinter_RSEM_pj_pmed.txt | tr ' ' \\t > inter_Characteristics/$getOneName.final
-       fi
-   done
+   echo "Step: to calculate RPM in each tool " 
+   cat interMerged.tmp4 > interMerged.tmp4.1
+   cat Header.tmp1 > Header.tmp1.1
+   for i in $(seq 1 $sampleinter_num)
+   do 
+      cat $BASEDIR1\/$OPN\/interMerged.result | awk '{print $1 "\t" $2 "\t" $3 "\t" $4 "\t" $5 "\t" $6 "\t" $(8+k)}' k=$i > interMerged_toolOne.tmp1
+      toolOneName=$(cat interMerged_toolOne.tmp1 | head -n1  | awk '{print $7}') 
+      echo $toolOneName
+      cat interMerged_toolOne.tmp1 | sed -e '1d' | awk '$7 > 0 {print $1":"$2":"$3":"$4":"$5":"$6 "\t" $7}' | sort -k1,1 | uniq > interMerged_toolOne.tmp2
+      cat interMerged_toolOne.tmp2 | awk '{print $1 "\t" $2 "\t" ($2/T)*1000000 "\t" ($2/M)*1000000}' T=$totalRead  M=$UMRead | sort -k1,1 > interMerged_toolOne.tmp3
+      paste <(cat interMerged.tmp4.1 | awk '{print $1":"$2":"$3":"$4":"$5":"$6}') <(cat interMerged.tmp4.1 | tr '\t' ':') | sort -k1,1 | uniq > interMerged.tmp5 
+      join -o 1.2 2.2 2.3 2.4 interMerged.tmp5 interMerged_toolOne.tmp3 -a1 -e nd | sort -k1,1 | tr ' ' \\t | tr ':' \\t >  interMerged.tmp6
+      echo $toolOneName"_JunctionRead" $toolOneName"_RPM_total" $toolOneName"_RPM_mapped" | tr ' ' \\t > toolHeader.tmp
+      paste Header.tmp1.1 toolHeader.tmp | tr ' ' \\t > Header.tmp2
+      cat Header.tmp2 > Header.tmp1.1
+      cat interMerged.tmp6 > interMerged.tmp4.1
+  done 
+  cat Header.tmp2 interMerged.tmp6 > $BASEDIR1\/$OPN\/interMerged_characteristic.result
 
 fi
 
-rm -r -f $BASEDIR1\/$OPN\/STAR_RSEM_out
-rm -r -f $BASEDIR1\/$OPN\/comparison\/exons_boundary.bed
-rm -r -f $BASEDIR1\/$OPN\/comparison\/exons_boundary.tmp1
-rm -r -f $BASEDIR1\/$OPN\/comparison\/exons_boundary.tmp2
-rm -r -f $BASEDIR1\/$OPN\/comparison\/exons.txt
-rm -r -f $BASEDIR1\/$OPN\/comparison\/intra_tmp1.bed
-rm -r -f $BASEDIR1\/$OPN\/comparison\/intra_tmp2.bed
-rm -r -f $BASEDIR1\/$OPN\/comparison\/inter_tmp1.bed
-rm -r -f $BASEDIR1\/$OPN\/comparison\/inter_tmp2.bed 
-rm -r -f $BASEDIR1\/$OPN\/comparison\/intra_tmp.result
-rm -r -f $BASEDIR1\/$OPN\/comparison\/inter_tmp.result
-rm -r -f $BASEDIR1\/$OPN\/comparison\/sampleinter.tmp
-rm -r -f $BASEDIR1\/$OPN\/comparison\/sampleintra.tmp
+cd $BASEDIR1\/$OPN\/comparison
+rm  -r -f *tmp*        
+rm -r -f SJ_pj.txt
+rm -r -f gene_pmed.txt
+rm -r -f *pre* 
 
-
-rm -r -f NCLsample*
-rm -r -f *tmp*
-rm -r -f OC.final
-rm -r -f *pre*
-rm -r -f HeaderPost.txt
-rm -r -f HeaderPostInter.txt
-
+echo ""
+date "+%d/%m/%y %H:%M:%S ...... NCLcomparator analysis completed !"
 

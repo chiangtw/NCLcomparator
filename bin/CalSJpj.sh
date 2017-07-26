@@ -1,10 +1,46 @@
 #!/usr/bin/env zsh
+
+if [[ -z "$1" ]]; then
+   echo ""
+   echo "Usage:"
+   echo "./CalSJpj.sh [NCLin] [GTF] [SJ.out.tab]"
+   echo "Output files: SJ_pj.txt and genes_pmed.txt"
+   echo ""
+   echo "ERROR: no NCL input file !"
+   echo ""
+   exit
+fi
+
+if [[ -z "$2" ]]; then
+   echo ""
+   echo "Usage:"
+   echo "./CalSJpj.sh [NCLin] [GTF] [SJ.out.tab]"
+   echo "Output files: SJ_pj.txt and genes_pmed.txt"
+   echo ""
+   echo "ERROR: no annotation gtf file !"
+   echo ""
+   exit
+fi
+
+
+if [[ -z "$3" ]]; then
+   echo ""
+   echo "Usage:"
+   echo "./CalSJpj.sh [NCLin] [GTF] [SJ.out.tab]"
+   echo "Output files: SJ_pj.txt and genes_pmed.txt"
+   echo ""
+   echo "ERROR: no SJ.out.tab !"
+   echo ""
+   exit
+fi
+
+
 NCLresult=$1
 geneGTF=$2
 starSJ=$3
 
-cat $NCLresult |  awk '{print $1"_"$2 "\t" $8}' >SJ_h.tmp1 
-cat $NCLresult |  awk '{print $4"_"$5 "\t" $9}' >SJ_h.tmp2 
+cat $NCLresult |  awk '{print $1"_"$2 "\t" $7}' >SJ_h.tmp1 
+cat $NCLresult |  awk '{print $4"_"$5 "\t" $7}' >SJ_h.tmp2 
 cat SJ_h.tmp1 SJ_h.tmp2 | sort -k1,1 | grep ',' | sed 's/,/\t/g' | awk '{for(i=2; i<=NF;i++){print $1 "\t" $i}}' | sort -k1,1 | uniq > SJ_h.tmp3
 cat SJ_h.tmp1 SJ_h.tmp2 | sort -k1,1 | grep -v ',' > SJ_h.tmp4
 cat SJ_h.tmp3 SJ_h.tmp4 | sort -k1,1 | uniq > SJ_h.tmp 
@@ -27,7 +63,7 @@ fi
 echo -n > SJ_pj.txt
 echo -n > gene_pmed.txt
 
-split -l 500 SJ_h_Genename.tmp SJ_h_Genename.split.
+split -l 1000 SJ_h_Genename.tmp SJ_h_Genename.split.
 for CHUNK in SJ_h_Genename.split.*;do
  
 row_num=$(cat $CHUNK | wc -l)

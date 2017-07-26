@@ -1,5 +1,45 @@
 #!/usr/bin/env zsh 
 
+if [[ -z "$1" ]]; then
+   echo ""
+   echo "Usage:"
+   echo "./OutOfCircular.sh [NCLIn] [Chimeric.out.junction] [Chimeric.out.sam] [Log.final.out]"
+   echo ""
+   echo "ERROR: no NCL input file !"
+   echo ""
+   exit
+fi
+
+if [[ -z "$2" ]]; then
+   echo ""
+   echo "Usage:"
+   echo "./OutOfCircular.sh [NCLIn] [Chimeric.out.junction] [Chimeric.out.sam] [Log.final.out]"
+   echo ""
+   echo "ERROR: no Chimeric.out.junction file !"
+   echo ""
+   exit
+fi
+
+if [[ -z "$3" ]]; then
+   echo ""
+   echo "Usage:"
+   echo "./OutOfCircular.sh [NCLIn] [Chimeric.out.junction] [Chimeric.out.sam] [Log.final.out]"
+   echo ""
+   echo "ERROR: no Chimeric.out.sam file !"
+   echo ""
+   exit
+fi
+
+if [[ -z "$3" ]]; then
+   echo ""
+   echo "Usage:"
+   echo "./OutOfCircular.sh [NCLIn] [Chimeric.out.junction] [Chimeric.out.sam] [Log.final.out]"
+   echo ""
+   echo "ERROR: no Log.final.out file !"
+   echo ""
+   exit
+fi
+
 NCLIn=$1
 FChimericOutJunc=$2
 FSAM=$3
@@ -8,7 +48,7 @@ starlog=$4
 echo -n > output.OR
 echo -n > NCL.SRR
 
-cat $NCLIn | awk '{print $1 "\t" $2 "\t" $3 "\t" $4 "\t" $5 "\t" $6}' | sort -k1,1 -k2,2n > NCL_6col.tmp
+cat $NCLIn | awk '{print $1 "\t" $2 "\t" $3 "\t" $4 "\t" $5 "\t" $6}' | sed 's/chr//g' | sort -k1,1 -k2,2n > NCL_6col.tmp
 
 cat NCL_6col.tmp | grep '+' | awk '{print $1 "\t" $2+1 "\t" $3 "\t" $4 "\t" $5-1 "\t" $6}' > NCL.pos.pre1
 cat NCL_6col.tmp | grep '-' | awk '{print $1 "\t" $2-1 "\t" $3 "\t" $4 "\t" $5+1 "\t" $6}' > NCL.pos.pre2
@@ -61,8 +101,8 @@ do
      echo $OR | sed 's/\r//g' >> output.OR   
 done
 
-cat output.OR | grep '+' | awk '{print $1 "\t" $2-1 "\t" $3 "\t" $4 "\t" $5+1 "\t" $6 "\t" $7 "\t" $8 "\t" $9}' > output.OR1
-cat output.OR | grep '-' | awk '{print $1 "\t" $2+1 "\t" $3 "\t" $4 "\t" $5-1 "\t" $6 "\t" $7 "\t" $8 "\t" $9}' > output.OR2
+cat output.OR | grep '+' | awk '{print "chr"$1 "\t" $2-1 "\t" $3 "\t" "chr"$4 "\t" $5+1 "\t" $6 "\t" $7 "\t" $8 "\t" $9}' > output.OR1
+cat output.OR | grep '-' | awk '{print "chr"$1 "\t" $2+1 "\t" $3 "\t" "chr"$4 "\t" $5-1 "\t" $6 "\t" $7 "\t" $8 "\t" $9}' > output.OR2
 cat output.OR1 output.OR2 | sort -k1,1 -k2,2n > OC.final
 
 
