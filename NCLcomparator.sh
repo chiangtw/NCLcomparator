@@ -147,7 +147,7 @@ then
 else
       cat $BASEDIR1\/$OPN\/STAR_RSEM_out\/SJ.out.tab | awk '{print "chr"$1 "\t" $2-1 "\t" $7}' | sort -k1,1 -k2,2n | bedtools groupby -g 1,2 -c 3 -o sum > SJ_exon.pre1
       cat $BASEDIR1\/$OPN\/STAR_RSEM_out\/SJ.out.tab | awk '{print "chr"$1 "\t" $3+1 "\t" $7}' | sort -k1,1 -k2,2n | bedtools groupby -g 1,2 -c 3 -o sum > SJ_exon.pre2
-      cat SJ_exon.pre1 SJ_exon.pre2 | awk '{print $1":"$2 "\t" $3}' | sort > SJ_exon.count      
+      cat SJ_exon.pre1 SJ_exon.pre2 | awk '{print $1":"$2 "\t" $3}' | sort -k1,1 -k2,2n > SJ_exon.count      
 fi 
 
 cat $BASEDIR1\/$OPN\/STAR_RSEM_out\/RSEMout.genes.results | awk '{print $1 "\t" $6 "\t" $7}' | sed -e '1d' > genes_RSEM.txt
@@ -214,7 +214,7 @@ if [[ -n "$CIRCULAR" ]]; then
     cat all.circEB.tmp  | sed 's/:/\t/g' | tr ' ' \\t > $BASEDIR1\/$OPN\/comparison\/intraMerged.out
     cat <(echo $header) $BASEDIR1\/$OPN\/comparison\/intraMerged.out > intraMerged.result
     echo "Step: to graph intraMerged.result"
-    $BASEDIR1\/bin\/graphic_intra.R intraMerged.result intra
+    $BASEDIR\/bin\/graphic_intra.R intraMerged.result intra
     rm -r -f *.tmp
     rm -r -f all.circEB
     rm -r -f sampleintra
@@ -231,13 +231,13 @@ if [[ -n "$CIRCULAR" ]]; then
    
    echo "Step: to calculate SJpj using CalSJpj.sh"
    ### generate SJ_pj.txt and gene_pmed.txt ##
-   $BASEDIR1/bin/CalSJpj.sh intraMerged.out $geneGTF $BASEDIR1\/$OPN\/STAR_RSEM_out\/SJ.out.tab
+   $BASEDIR/bin/CalSJpj.sh intraMerged.out $geneGTF $BASEDIR1\/$OPN\/STAR_RSEM_out\/SJ.out.tab
    cat SJ_pj.txt > intra_SJ_pj.txt
    cat gene_pmed.txt > intra_gene_pmed.txt
    
    echo "Step: to examine out of circular using OutOfCircular.sh"
    ## generate OC.final ##
-   $BASEDIR1/bin/OutOfCircular.sh intraMerged.out $BASEDIR1\/$OPN\/STAR_RSEM_out\/Chimeric.out.junction $BASEDIR1\/$OPN\/STAR_RSEM_out\/Chimeric.out.sam $BASEDIR1\/$OPN\/STAR_RSEM_out\/Log.final.out
+   $BASEDIR/bin/OutOfCircular.sh intraMerged.out $BASEDIR1\/$OPN\/STAR_RSEM_out\/Chimeric.out.junction $BASEDIR1\/$OPN\/STAR_RSEM_out\/Chimeric.out.sam $BASEDIR1\/$OPN\/STAR_RSEM_out\/Log.final.out
    
    
    join -o 1.1 1.2 1.3 2.3 2.4 intraMerged.tmp.exonNum intraMerged.tmp.TPM_FPKM -a1 -e nd | sort | uniq | tr ' ' \\t | awk '{print $2 "\t" $1 "\t" $3 "\t" $4 "\t" $5}' | tr ':' \\t > intraMerged.tmp2
@@ -364,7 +364,7 @@ if [[ -n "$FUSION" ]]; then
     cat all.fusionEB.tmp  | sed 's/:/\t/g' | tr ' ' \\t > $BASEDIR1\/$OPN\/comparison\/interMerged.out
     cat <(echo $header) $BASEDIR1\/$OPN\/comparison\/interMerged.out > interMerged.result
     echo "Step: to graph interMerged.result"
-    $BASEDIR1\/bin\/graphic_inter.R interMerged.result inter
+    $BASEDIR\/bin\/graphic_inter.R interMerged.result inter
     rm -r -f *.tmp
     rm -r -f all.fusionEB
     rm -r -f sampleinter
@@ -379,7 +379,7 @@ if [[ -n "$FUSION" ]]; then
     
     echo "Step: to calculate SJpj using CalSJpj.sh"
     ## generate SJ_pj.txt and gene_pmed.txt ##
-    $BASEDIR1/bin/CalSJpj.sh interMerged.out $geneGTF $BASEDIR1\/$OPN\/STAR_RSEM_out\/SJ.out.tab
+    $BASEDIR/bin/CalSJpj.sh interMerged.out $geneGTF $BASEDIR1\/$OPN\/STAR_RSEM_out\/SJ.out.tab
     cat SJ_pj.txt > inter_SJ_pj.txt
     cat gene_pmed.txt > inter_gene_pmed.txt
      
