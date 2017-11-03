@@ -34,7 +34,7 @@ Get latest STAR source from releases and install it
 $ wget https://github.com/alexdobin/STAR/archive/2.5.3a.tar.gz
 $ tar -xzf 2.5.3a.tar.gz
 $ cd STAR-2.5.3a
-$ cp bin/Linux_x86_64_static/STAR /usr/local/bim
+$ cp bin/Linux_x86_64_static/STAR /usr/local/bin
 ```
 Get latest RSEM source code and install it
 ```sh
