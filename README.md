@@ -84,7 +84,7 @@ The basic options to run a job as follow:
 - -inter (optional) /path/to/NCL-inter result folder
 - -sce (optional) /path/to/SCE.bed
 
-The output file of running HeLa rRNA depleted RNA-seq data are provided in our FTP (ftp://treeslab1.genomics.sinica.edu.tw/NCLcomparator/HeLa_output.tar.gz) 
+The output file of running HeLa rRNA depleted RNA-seq data are provided in the example_output/HeLa folder.
 
 ### 6. Input format of NCL events
 The input format of NCL detection results are required to modify as 5-col format, which includes the positons of donor/acceptor sides and the number of supporting NCL-junction reads. Intra-NCL modified 5-col format results are gathered into a folder, and inter-NCL modified 5-col format results are gathered into another folder. An example of NCL detectors' result on HeLa rRNA depleted RNA-seq data are provided at the foler (example_output/HeLa) 
@@ -108,7 +108,7 @@ The column formats of outputs are described as follow:
 
 #### intraMerged_junction.result (tab-delimited text file)
 
-|No. of columun | Description |
+|No. of column | Description |
 |---------------|-------------|
 | (1) | Chromosome name of the donor side (5' ss) |
 | (2) | Junction coordination of the donor side |
