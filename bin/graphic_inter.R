@@ -1,7 +1,9 @@
 #! /usr/bin/env Rscript
 
 # Usage:
-# ./graphic.R Merged.result OUTPUTname
+# ./graphic.R interMerged.result OUTPUTname
+#
+# Output files: interMerged_junction.result and OUTPUTname.pdf
 
 args <- commandArgs(TRUE)
 in_file <- args[1]
@@ -23,6 +25,24 @@ input2 <- data.matrix(input[,c(9:inputLastcol)])
 inputToolsNum <- inputLastcol-8
 inputToolsNames <- colnames(input2)
 
+## generate interMerged_junction.result
+input.out <- c()
+input.RS <- rowSums(1*(input[,-c(1:8)] >0))
+for (i in 1:inputEventNum)
+{
+  E.one <- as.numeric(input[i,-c(1:8)])
+  Jmed <- median(E.one)
+  Jtau <- sum(1-log(E.one+1)/log(max(E.one)+1))/(length(E.one)-1)
+  NCLscore <- -1*log10((Jtau+0.01)/(((Jmed)^2)+0.01))
+  NumSupportedTools <- input.RS[i]
+  one.out <- cbind(input[i,], NumSupportedTools, Jmed, Jtau, NCLscore)
+  input.out <- rbind(input.out, one.out) 
+}
+write.table(input.out, file="interMerged_junction.result", append=FALSE, 
+            quote=FALSE, sep="\t", row.names=FALSE, col.names=TRUE)
+
+
+## plot OUTPUTname.pdf 
 if(inputToolsNum >1)
 {  
   input3 <- 1*(input2 > 0)

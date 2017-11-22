@@ -138,18 +138,7 @@ fi
 cat $geneGTF | awk '{for(i=1;i<=NF;i++) if($i=="gene_name"){print  $(i+1) "\t" $0} }'  | awk '{for(i=1;i<=NF;i++) if($i=="gene_id") {print $(i+1) "\t" $0}}' | awk '{print $1 "\t" $2}' | sed 's/;//g' | sed 's/"//g' | sort  | uniq > ENSG_GeneID_convert.txt
 cat $geneGTF | awk '{for(i=1;i<=NF;i++) if($i=="exon_number") {print $(i+1) "\t" $0} }'| awk '{for(i=1;i<=NF;i++) if($i=="gene_name"){print  $(i+1) "\t" $0} }' | awk '{print $1 "\t" $2}' | sed 's/;//g' | sed 's/"//g'| sort -k1 -rnk2 | awk '!x[$1]++' | sort -k1,1 > GeneID_exonNum.txt
 
-chrCheck=$(cat $BASEDIR1\/$OPN\/STAR_RSEM_out\/SJ.out.tab | head -10 | grep 'chr')
-if [[ -n "$chrCheck" ]]
-then
-      cat $BASEDIR1\/$OPN\/STAR_RSEM_out\/SJ.out.tab | awk '{print $1 "\t" $2-1 "\t" $7}' | sort -k1,1 -k2,2n | bedtools groupby -g 1,2 -c 3 -o sum > SJ_exon.pre1
-      cat $BASEDIR1\/$OPN\/STAR_RSEM_out\/SJ.out.tab | awk '{print $1 "\t" $3+1 "\t" $7}' | sort -k1,1 -k2,2n | bedtools groupby -g 1,2 -c 3 -o sum > SJ_exon.pre2
-      cat SJ_exon.pre1 SJ_exon.pre2 | awk '{print $1":"$2 "\t" $3}' | sort -k1,1 > SJ_exon.count
-else
-      cat $BASEDIR1\/$OPN\/STAR_RSEM_out\/SJ.out.tab | awk '{print "chr"$1 "\t" $2-1 "\t" $7}' | sort -k1,1 -k2,2n | bedtools groupby -g 1,2 -c 3 -o sum > SJ_exon.pre1
-      cat $BASEDIR1\/$OPN\/STAR_RSEM_out\/SJ.out.tab | awk '{print "chr"$1 "\t" $3+1 "\t" $7}' | sort -k1,1 -k2,2n | bedtools groupby -g 1,2 -c 3 -o sum > SJ_exon.pre2
-      cat SJ_exon.pre1 SJ_exon.pre2 | awk '{print $1":"$2 "\t" $3}' | sort -k1,1 -k2,2n > SJ_exon.count      
-fi 
-
+ 
 cat $BASEDIR1\/$OPN\/STAR_RSEM_out\/RSEMout.genes.results | awk '{print $1 "\t" $6 "\t" $7}' | sed -e '1d' > genes_RSEM.txt
 join ENSG_GeneID_convert.txt genes_RSEM.txt > ENSG_GeneID_RSEM.txt  
 ## ENSG versus GeneID is multiple to one, choose choose large FPKM as represent of GeneID ## 
@@ -181,7 +170,7 @@ if [[ -n "$CIRCULAR" ]]; then
      bedtools intersect -a intra_tmp2.bed -b exons_boundary.bed  -wa -wb | awk '{print $4 "\t" $8}' | sed 's/:/\t/g' | awk '{print $6 "\t" $7 "\t" $8 "\t" $10 "\t" $11 "\t" $12 "\t" $5 "\t" $9 "\t" $13}'| sort -k1,1 -k2,2n | uniq | awk '$3==$6 && $8==$9 {print $0}'  > intra_tmp.result
      cat intra_tmp.result | sed 's/+/sense/g' | sed 's/-/anti/g' | awk '{print $1 "\t" $2 "\t" $3 "\t" $4 "\t" $5 "\t" $6 "\t" $7 "\t" $8}' | sort -k1,1 -k2,2n | uniq | bedtools groupby -g 1,2,3,4,5,6,7 -c 8 -o collapse | sed 's/sense/+/g' | sed 's/anti/-/g' | awk '{print $0 "\t" $8}'| sort -k1,1 -k2,2n | uniq > intra_tmp1.result
      cat intra_tmp1.result | awk '{if($3=="+" && $2 > $5) print $0; else if($3=="+" && $2 < $5) print $1 "\t" $5 "\t" $3 "\t" $4 "\t" $2 "\t" $6 "\t" $7 "\t" $8 "\t" $9; else if($3=="-" && $2 < $5) print $0; else if($3=="-"&& $2> $5) print $1 "\t" $5 "\t" $3 "\t" $4 "\t" $2 "\t" $6 "\t" $7 "\t" $8 "\t" $9}'| sort -k1,1 -k2,2n | uniq > intra_tmp2.result
-     cat intra_tmp2.result | sed 's/+/sense/g' | sed 's/-/anti/g' | awk '{print $1":"$2":"$3":"$4":"$5":"$6":"$8 "\t" $7}' | sort | bedtools groupby -g 1 -c 2 -o sum > intra_tmp3.result  
+     cat intra_tmp2.result | sed 's/+/sense/g' | sed 's/-/anti/g' | awk '{print $1":"$2":"$3":"$4":"$5":"$6":"$8 "\t" $7}' | sort -k1,1 | bedtools groupby -g 1 -c 2 -o sum > intra_tmp3.result  
      cat intra_tmp3.result | sed 's/:/\t/g'| sed 's/sense/+/g' | sed 's/anti/-/g' | awk '{print $1 "\t" $2 "\t" $3 "\t" $4 "\t" $5 "\t" $6 "\t" $8 "\t" $7 "\t" $7 }'> intra\/$getOneName.circEB 
  
    done
@@ -241,7 +230,7 @@ if [[ -n "$CIRCULAR" ]]; then
    
    
    join -o 1.1 1.2 1.3 2.3 2.4 intraMerged.tmp.exonNum intraMerged.tmp.TPM_FPKM -a1 -e nd | sort | uniq | tr ' ' \\t | awk '{print $2 "\t" $1 "\t" $3 "\t" $4 "\t" $5}' | tr ':' \\t > intraMerged.tmp2
-   paste <(cat intraMerged.tmp2 | awk '{print $1"_"$2}') <(cat intraMerged.tmp2 | tr '\t' ':') | sort > intraMerged.tmp3.1
+   paste <(cat intraMerged.tmp2 | awk '{print $1"_"$2}') <(cat intraMerged.tmp2 | tr '\t' ':') | sort -k1,1  > intraMerged.tmp3.1
    join -o 1.2 2.2 intraMerged.tmp3.1 SJ_exon.count -a1 -e nd | tr ' ' \\t | tr ':' \\t | sort | uniq > intraMerged.tmp3.2
    paste <(cat intraMerged.tmp3.2 | awk '{print $4"_"$5}') <(cat intraMerged.tmp3.2 | tr '\t' ':') | sort | uniq > intraMerged.tmp3.3  
    join -o 1.2 2.2 intraMerged.tmp3.3 SJ_exon.count -a1 -e nd | tr ' ' \\t | tr ':' \\t | sort  | uniq > intraMerged.tmp3
@@ -291,7 +280,7 @@ if [[ -n "$CIRCULAR" ]]; then
       cat intraMerged_toolOne.tmp1 | sed -e '1d' | awk '$7 > 0 {print $1":"$2":"$3":"$4":"$5":"$6 "\t" $7}' | sort -k1,1 | uniq > intraMerged_toolOne.tmp2
       cat intraMerged_toolOne.tmp2 | awk '{print $1 "\t" ($2/T)*1000000 "\t" ($2/M)*1000000}' T=$totalRead  M=$UMRead | sort -k1,1 > intraMerged_toolOne.tmp3
       join -o 1.1 1.2 2.2 2.3 intraMerged_toolOne.tmp2 intraMerged_LR.tmp -a1 -e nd | sort -k1,1 | uniq > intraMerged_toolOne.tmp4.1
-      cat intraMerged_toolOne.tmp4.1 | sed 's/nd/0/g' | awk '{print $1 "\t" $2/($3+$4+1) "\t" (2*$2)/(2*$2+$3+$3)}' | sort -k1,1  | uniq  > intraMerged_toolOne.tmp4
+      cat intraMerged_toolOne.tmp4.1 | sed 's/nd/0/g' | awk '{print $1 "\t" $2/($2+$3+$4+1) "\t" (2*$2)/(2*$2+$3+$3)}' | sort -k1,1  | uniq  > intraMerged_toolOne.tmp4
       
       join -o 1.1 1.2 2.2 2.3 intraMerged_toolOne.tmp2 intraMerged_toolOne.tmp3 -a1 -e nd | tr ' ' \\t > intraMerged_toolOne.tmp5.1
       join -o 1.1 1.2 1.3 1.4 2.2 2.3 intraMerged_toolOne.tmp5.1 intraMerged_toolOne.tmp4 -a1 -e nd |tr ' ' \\t > intraMerged_toolOne.tmp5
@@ -445,6 +434,9 @@ rm  -r -f *tmp*
 rm -r -f SJ_pj.txt
 rm -r -f gene_pmed.txt
 rm -r -f *pre* 
+cd $BASEDIR1\/$OPN\/STAR_RSEM_out
+rm -r -f Aligned.toTranscriptome.out.bam
+rm -r -f RSEMout.transcript.bam
 
 echo ""
 date "+%d/%m/%y %H:%M:%S ...... NCLcomparator analysis completed !"

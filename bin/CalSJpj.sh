@@ -51,12 +51,13 @@ if [[ -n "$chrCheck" ]]
 then
       cat $starSJ | awk '{print $1 "\t" $2-1 "\t" $7}' | sort -k1,1 -k2,2n | bedtools groupby -g 1,2 -c 3 -o sum > SJ_exon.pre1
       cat $starSJ | awk '{print $1 "\t" $3+1 "\t" $7}' | sort -k1,1 -k2,2n | bedtools groupby -g 1,2 -c 3 -o sum > SJ_exon.pre2
-      cat SJ_exon.pre1 SJ_exon.pre2 | awk '{print $1"_"$2 "\t" $3}' | sort -k1,1 > SJ_exon.count
+      cat SJ_exon.pre1 SJ_exon.pre2 | awk '{print $1"_"$2 "\t" $3}' | sort -k1,1 -k2,2n | bedtools groupby -g 1 -c 2 -o sum > SJ_exon.count      
+
 else
       cat $starSJ | awk '{print "chr"$1 "\t" $2-1 "\t" $7}' | sort -k1,1 -k2,2n | bedtools groupby -g 1,2 -c 3 -o sum > SJ_exon.pre1
       cat $starSJ | awk '{print "chr"$1 "\t" $3+1 "\t" $7}' | sort -k1,1 -k2,2n | bedtools groupby -g 1,2 -c 3 -o sum > SJ_exon.pre2
-      cat SJ_exon.pre1 SJ_exon.pre2 | awk '{print $1"_"$2 "\t" $3}' | sort -k1,1 > SJ_exon.count
-      
+      cat SJ_exon.pre1 SJ_exon.pre2 | awk '{print $1"_"$2 "\t" $3}' | sort -k1,1 -k2,2n | bedtools groupby -g 1 -c 2 -o sum > SJ_exon.count      
+     
 fi 
 
 
