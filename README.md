@@ -87,7 +87,7 @@ The basic options to run a job as follow:
 The output file of running HeLa rRNA depleted RNA-seq data are provided in our FTP (ftp://treeslab1.genomics.sinica.edu.tw/NCLcomparator/HeLa_output.tar.gz) 
 
 ### 6. Input format of NCL events
-The input format of NCL detection results are required to modify as 5-col format, which includes the positons of donor/acceptor sides and the number of supporting NCL-junction reads. Intra-NCL modified 5-col format results are gathered into a folder, and inter-NCL modified 5-col format results are gathered into another folder. An example of NCL detectors' result on HeLa rRNA depleted RNA-seq data are provided at our FTP (ftp://treeslab1.genomics.sinica.edu.tw/NCLcomparator/HeLa_runNCLdetectors_results.tar.gz) 
+The input format of NCL detection results are required to modify as 5-col format, which includes the positons of donor/acceptor sides and the number of supporting NCL-junction reads. Intra-NCL modified 5-col format results are gathered into a folder, and inter-NCL modified 5-col format results are gathered into another folder. An example of NCL detectors' result on HeLa rRNA depleted RNA-seq data are provided at the foler (example_output/HeLa) 
   
 Given a 5-col result, CIRCexplorer2.5col (tab-delimited text file), as an example,  
 
