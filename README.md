@@ -120,10 +120,10 @@ The column formats of outputs are described as follow:
 | (8) | Circular tool No.1 (Yes: number of supporting intragenic NCL-junction reads; No: 0) |
 | (9) | Circular tool No.2	(Yes: number of supporting intragenic NCL-junction reads; No: 0) |
 |(10) | ... |
-|(  ) | Number of supported circular tools in the event |
-|(  ) | Median of junction reads |
-|(  ) | Tau: evaluating variantion of identified junction reads among circular tools |
-|(  ) | NCLscore: confident level of the event |
+|( the last 4th ) | Number of supported circular tools in the event |
+|( the last 3th ) | Median of junction reads |
+|( the last 2th ) | Tau: evaluating variantion of identified junction reads among circular tools |
+|( the last ) | NCLscore: confident level of the event |
 
 
 #### interMerged_junction.result (tab-delimited text file)
@@ -141,10 +141,10 @@ The column formats of outputs are described as follow:
 | (9) | Fusion tool No.1 (Yes: number of supporting intergenic NCL-junction reads; No: 0) |
 | (10) | Fusion tool No.2	(Yes: number of supporting intergenic NCL-junction reads; No: 0) |
 |(11) | ...|
-|(  ) | Number of supported fusion fools in the event |
-|(  ) | Median of junction reads |
-|(  ) | Tau: evaluating variation of identified junction reads among fusion tools |
-|(  ) | NCLscore: confient level of the event |
+|( the last 4th ) | Number of supported fusion fools in the event |
+|( the last 3th ) | Median of junction reads |
+|( the last 2th ) | Tau: evaluating variation of identified junction reads among fusion tools |
+|( the last ) | NCLscore: confient level of the event |
 
 
 The other two ouputs, intraMerged_characteristic.result and interMerged_characteristic.result, provide the useful features of NCL events.
