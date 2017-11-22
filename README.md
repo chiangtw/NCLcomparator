@@ -128,7 +128,7 @@ The column formats of outputs are described as follow:
 
 #### interMerged_junction.result (tab-delimited text file)
 
-|No. of columun | Description |
+|No. of column | Description |
 |---------------|-------------|
 | (1) | Chromosome name of the donor side (5' ss) |
 | (2) | Junction coordination of the donor side |
