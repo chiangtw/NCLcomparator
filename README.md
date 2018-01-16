@@ -43,6 +43,7 @@ $ tar -xzf v1.3.0.tar.gz
 $ cd RSEM-1.3.0
 $ make
 $ make ebseq
+$ make install
 ```
 Get R in Ubuntu environment
 ```sh
