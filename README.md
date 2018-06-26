@@ -97,10 +97,10 @@ Usage:
  $ ./NCLcomparator.sh -gtf [annotation GTF file] \
   -genome [genome fasta file] \
   -trpts [the folder with transcripts] \
+  -index [STAR_RSEM index folder] \
   -thread [number of thread] \
   -read1 [fastq_1.gz] \
   -read2 [fastq_2.gz] \
-  -index [STAR_RSEM index folder] \
   -intra [circular result folder] \
   -inter [fusion result folder] \
   -sce [SCE bed file] \
