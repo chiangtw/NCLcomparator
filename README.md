@@ -17,9 +17,14 @@ $ chmod +x bin/*
 ```
 ### 3. Installation external tools
    (1) bedtools (http://bedtools.readthedocs.io/en/latest/)
-   (2) STAR (https://github.com/alexdobin/STAR)
-   (3) RSEM (https://github.com/deweylab/RSEM)
-   (4) R (https://www.r-project.org/)
+   
+   (2) blat (http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/blat/)
+   
+   (3) STAR (https://github.com/alexdobin/STAR)
+   
+   (4) RSEM (https://github.com/deweylab/RSEM)
+   
+   (5) R (https://www.r-project.org/)
 
 Get latest bedtools source from releases and install it 
 ```sh
@@ -27,7 +32,12 @@ $ wget https://github.com/arq5x/bedtools2/releases/download/v2.25.0/bedtools2.25
 $ tar -zxvf bedtools-2.25.0.tar.gz
 $ cd bedtools2
 $ make
-$ cp ./bin/ /usr/local/bin
+$ sudo cp ./bin/ /usr/local/bin
+```
+Get executable blat prgram
+```sh
+$ wget http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/blat/blat
+$ sudo cp blat /usr/local/bin
 ```
 Get latest STAR source from releases and install it 
 ```sh
@@ -51,12 +61,21 @@ $ sudo apt-get update
 $ sudo apt-get install r-base
 ```
 ### 4. Preparation
- (1) Genome and its annotation, which can be download from the GENCODE website (http://www.gencodegenes.org/) or ensembl FTP   (http://www.ensembl.org/info/data/ftp/index.html). Given Human as an example, go to ensembl FTP (http://www.ensembl.org/info/data/ftp/index.html) to download human genome and annotation.
+ (1) Genome, transcritome and its annotation, which can be download from the GENCODE website (http://www.gencodegenes.org/) or ensembl FTP   (http://www.ensembl.org/info/data/ftp/index.html). Given Human as an example, go to ensembl FTP (http://www.ensembl.org/info/data/ftp/index.html) to download human genome and annotation.
+ 
 ```sh 
 $ wget ftp://ftp.ensembl.org/pub/release-85/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
 $ wget ftp://ftp.ensembl.org/pub/release-87/gtf/homo_sapiens/Homo_sapiens.GRCh38.87.gtf.gz
 $ gunzip Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
 $ gunzip Homo_sapiens.GRCh38.87.gtf.gz
+
+# download types of transctips files into the trpts folder
+$ mkdir trpts
+$ cd trpts
+$ wget ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_28/gencode.v28.pc_transcripts.fa.gz
+$ wget ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_28/gencode.v28.lncRNA_transcripts.fa.gz
+$ gunzip gencode.v28.pc_transcripts.fa.gz
+$ gunzip gencode.v28.lncRNA_transcripts.fa.gz
 ``` 
  (2) (Optional) Synonymous Constraint elements (SCE), which can be download from (http://compbio.mit.edu/SCE/)
 
@@ -74,13 +93,30 @@ The STAR and RSEM index of the genome hg38 and the annotation ensemble 87 is pre
     
 Usage:
  ```sh
- $ ./NCLcomparator.sh -gtf [annotation GTF file] -thread [number of thread] -read1 [fastq_1.gz] -read2 [fastq_2.gz] -index [STAR_RSEM index folder] -intra [circular result folder] -inter [fusion result folder] -sce [SCE bed file]
+ $ ./NCLcomparator.sh -gtf [annotation GTF file] \
+  -genome [genome fasta file] \
+  -trpts [the folder with transcripts] \
+  -thread [number of thread] \
+  -read1 [fastq_1.gz] \
+  -read2 [fastq_2.gz] \
+  -index [STAR_RSEM index folder] \
+  -intra [circular result folder] \
+  -inter [fusion result folder] \
+  -sce [SCE bed file] \
 ```
 An example: 
 ```sh 
-$ ./NCLcomparator.sh -gtf Homo_sapiens.GRCh38.87.gtf -intra /path/to/intra -inter /path/to/inter -sce SCE_hg38.bed -read1 HeLa_1.fastq.gz -read2 HeLa_2.fastq.gz -index /path/to/STAR_RSEM_index
+$ ./NCLcomparator.sh -gtf Homo_sapiens.GRCh38.87.gtf \
+  -genome Homo_sapiens.GRCh38.dna.primary_assembly.fa \
+  -trpts /path/to/trpts \
+  -index /path/to/STAR_RSEM_index \
+  -thread 6\
+  -read1 HeLa_1.fastq.gz \
+  -read2 HeLa_2.fastq.gz \
+  -o HeLa  
 ```
 The basic options to run a job as follow:
+- -trpts /path/to/the folder with the transcripts downloaded from different types or sources.
 - -intra /path/to/NCL-intra result folder
 - -inter (optional) /path/to/NCL-inter result folder
 - -sce (optional) /path/to/SCE.bed
@@ -99,7 +135,7 @@ Given a 5-col result, CIRCexplorer2.5col (tab-delimited text file), as an exampl
 | chr1	| 955922 | chr1	| 957273 |  5 |
      
 ### 7. Output files
-After executing NCLcomparator program, two merged circular RNA and fusion RNA tools' results (intraMerged_junction.result and interMerged_junction.result) accompanied by its graphic report (intra.pdf and inter.pdf) are generated, and two newly folder is created (comparison and STAR_RSEM_out). The genomic positions of NCL events (within 5 bp of franking exon boundaries) in each NCL detection tool are adjusticed to the exact exonic boundaries. The other two files (intraMerged_characteristic.result and interMerged_characteristic.result) are produced.  
+After executing NCLcomparator program, two merged circular RNA and fusion RNA tools' results (AA_intraMerged_junction.result and AA_interMerged_junction.result) accompanied by its graphic report (intra.pdf and inter.pdf) are generated, and two newly folder is created (comparison and STAR_RSEM_out). The genomic positions of NCL events (within 5 bp of franking exon boundaries) in each NCL detection tool are adjusticed to the exact exonic boundaries. The other two characteristic files of NCL events (intraMerged_characteristic.result and interMerged_characteristic.result) are produced.  
 
 In STAR_RSEM_out folder, several output files are generated by running STAR and RSEM programs, these files are given as the input files of characteristic process in NCLcomaprator. In comparison folder, the two folders (intra and inter) are generated, where NCL events of the positions in each tool with <= 5 bp of franking exon boundaries are adjusted to the exact positions of exon boundaries.
 
@@ -107,7 +143,7 @@ In STAR_RSEM_out folder, several output files are generated by running STAR and 
 
 The column formats of outputs are described as follow:
 
-#### intraMerged_junction.result (tab-delimited text file)
+#### AA_intraMerged_junction.result (tab-delimited text file)
 
 |No. of column | Description |
 |---------------|-------------|
@@ -121,13 +157,15 @@ The column formats of outputs are described as follow:
 | (8) | Circular tool No.1 (Yes: number of supporting intragenic NCL-junction reads; No: 0) |
 | (9) | Circular tool No.2	(Yes: number of supporting intragenic NCL-junction reads; No: 0) |
 |(10) | ... |
-|( the last 4th ) | Number of supported circular tools in the event |
-|( the last 3th ) | Median of junction reads |
-|( the last 2th ) | Tau: evaluating variantion of identified junction reads among circular tools |
-|( the last ) | NCLscore: confident level of the event |
+|( the last 6th ) | Number of supported circular tools in the event |
+|( the last 5th ) | Median of junction reads |
+|( the last 4th ) | Tau: evaluating variantion of identified junction reads among circular tools |
+|( the last 3th) | NCLscore: confident level of the event |
+|( the last 2th) | AA_colinear : ambiguous alignemnt diagnosis of NCL event, colinear effect: Yes(1); No(0) |
+|( the last )| AA_multipleHit : ambiguous alignement diagnosis of NCL event. multiple hit effect: Yes(1); No(0) |  
 
 
-#### interMerged_junction.result (tab-delimited text file)
+#### AA_interMerged_junction.result (tab-delimited text file)
 
 |No. of column | Description |
 |---------------|-------------|
@@ -142,10 +180,12 @@ The column formats of outputs are described as follow:
 | (9) | Fusion tool No.1 (Yes: number of supporting intergenic NCL-junction reads; No: 0) |
 | (10) | Fusion tool No.2	(Yes: number of supporting intergenic NCL-junction reads; No: 0) |
 |(11) | ...|
-|( the last 4th ) | Number of supported fusion fools in the event |
-|( the last 3th ) | Median of junction reads |
-|( the last 2th ) | Tau: evaluating variation of identified junction reads among fusion tools |
-|( the last ) | NCLscore: confient level of the event |
+|( the last 6th ) | Number of supported fusion fools in the event |
+|( the last 5th ) | Median of junction reads |
+|( the last 4th ) | Tau: evaluating variation of identified junction reads among fusion tools |
+|( the last 3th) | NCLscore: confident level of the event |
+|( the last 2th) | AA_colinear : ambiguous alignemnt diagnosis of NCL event, colinear effect: Yes(1); No(0) |
+|( the last )| AA_multipleHit : ambiguous alignement diagnosis of NCL event. multiple hit effect: Yes(1); No(0) |  
 
 
 The other two ouputs, intraMerged_characteristic.result and interMerged_characteristic.result, provide the useful features of NCL events.
