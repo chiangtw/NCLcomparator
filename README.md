@@ -104,6 +104,7 @@ Usage:
   -intra [circular result folder] \
   -inter [fusion result folder] \
   -sce [SCE bed file] \
+  -o prefix of output folder
 ```
 An example: 
 ```sh 
@@ -114,6 +115,9 @@ $ ./NCLcomparator.sh -gtf Homo_sapiens.GRCh38.87.gtf \
   -thread 6\
   -read1 HeLa_1.fastq.gz \
   -read2 HeLa_2.fastq.gz \
+  -intra /path/to/example/5col/intra \
+  -inter /path/to/example/5col/inter \
+  -sce /path/to/example/SCE_hg38.bed \
   -o HeLa  
 ```
 The basic options to run a job as follow:
