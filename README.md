@@ -18,7 +18,7 @@ $ chmod +x bin/*
 ### 3. Installation external tools
    (1) bedtools (http://bedtools.readthedocs.io/en/latest/)
    
-   (2) blat (http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/blat/)
+   (2) BLAT (http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/blat/)
    
    (3) STAR (https://github.com/alexdobin/STAR)
    
@@ -37,7 +37,7 @@ $ cd bedtools2
 $ make
 $ sudo cp ./bin/ /usr/local/bin
 ```
-Get executable blat prgram
+Get executable BLAT prgram
 ```sh
 $ wget http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/blat/blat
 $ sudo cp blat /usr/local/bin
