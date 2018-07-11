@@ -26,7 +26,7 @@ $ chmod +x bin/*
    
    (5) R (https://www.r-project.org/)
    
-Bedtools was applied to manipulate genomic coordinate data (BED file). R was applied to graph the coverage of identified NCL events among the compared tools. BLAT was applied to identify false positive NCL events caused by ambiguous alignment originating from repetitive sequences or paralog genes. STAR was applied to align RNA-seq reads aganist reference genome for retrieving the number of mapped reads and the reads spanning NCL junctions to calculate the statistics of detected NCL events, such as RPM, RNCL, CF , PD , PA  and Pmedian. RSEM was applied to calculate the expression of  NCL events’ corresponding co-linear host genes (TPM and FPKM).    
+Bedtools was applied to manipulate genomic coordinate data (BED file). STAR was applied to align RNA-seq reads aganist reference genome for retrieving the number of mapped reads and the reads spanning NCL junctions to calculate the statistics of detected NCL events, such as RPM, RNCL, CF , PD , PA  and Pmedian. RSEM was applied to calculate the expression of  NCL events’ corresponding co-linear host genes (TPM and FPKM).  R was applied to graph the coverage of identified NCL events among the compared tools. BLAT was applied to identify false positive NCL events caused by ambiguous alignment originating from repetitive sequences or paralog genes.    
    
 
 Get latest bedtools source from releases and install it 
