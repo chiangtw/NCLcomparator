@@ -34,7 +34,7 @@ $ sudo cp blat /usr/local/bin
 ```
        
    (3) STAR (https://github.com/alexdobin/STAR) \
-       STAR was applied to align RNA-seq reads aganist reference genome. To Get latest STAR source from releases and install it. 
+       STAR was applied to align RNA-seq reads aganist reference genome for retrieving total number of mapped reads and the reads spanning NCL junctions. To Get latest STAR source from releases and install it. 
 ```sh
 $ wget https://github.com/alexdobin/STAR/archive/2.5.3a.tar.gz
 $ tar -xzf 2.5.3a.tar.gz
