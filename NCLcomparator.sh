@@ -8,6 +8,14 @@ case $key in
      geneGTF=$(readlink -f $2)
      shift
      ;; 
+     -genome|--genome) 
+     genome=$(readlink -f $2)
+     shift
+     ;; 
+     -trpts|--trpts) 
+     trpts=$(readlink -f $2)
+     shift
+     ;; 
      -thread|--ThreadN) 
      Thread=$2
      shift
@@ -51,9 +59,29 @@ done
 if [[ -z "$geneGTF" ]]; then
    echo ""
    echo "Usage:"
-   echo "./NCLcomparator.sh -gtf [annotation gtf file] -thread [number of thread] -index [STAR_RSEM_index folder] -read1 [read1 fastq.gz file] -read2 [read2 fastq.gz file]  -intra [circular results folder] -inter [fusion results folder] -sce [sce bed file] -o [ output Name] "
+   echo "./NCLcomparator.sh -gtf [annotation gtf file] -genome [genome annotation] -trpts [transcripts folder] -thread [number of thread] -index [STAR_RSEM_index folder] -read1 [read1 fastq.gz file] -read2 [read2 fastq.gz file]  -intra [circular results folder] -inter [fusion results folder] -sce [sce bed file] -o [ output Name] "
    echo ""
    echo "ERROR: no annotation gtf file !"
+   echo ""
+   exit
+fi
+
+if [[ -z "$genome" ]]; then
+   echo ""
+   echo "Usage:"
+   echo "./NCLcomparator.sh -gtf [annotation gtf file] -genome [genome annotation] -trpts [transcripts folder] -thread [number of thread] -index [STAR_RSEM_index folder] -read1 [read1 fastq.gz file] -read2 [read2 fastq.gz file]  -intra [circular results folder] -inter [fusion results folder] -sce [sce bed file] -o [ output Name] "
+   echo ""
+   echo "ERROR: no genome file !"
+   echo ""
+   exit
+fi
+
+if [[ -z "$trpts" ]]; then
+   echo ""
+   echo "Usage:"
+   echo "./NCLcomparator.sh -gtf [annotation gtf file] -genome [genome annotation] -trpts [transcripts folder] -thread [number of thread] -index [STAR_RSEM_index folder] -read1 [read1 fastq.gz file] -read2 [read2 fastq.gz file]  -intra [circular results folder] -inter [fusion results folder] -sce [sce bed file] -o [ output Name] "
+   echo ""
+   echo "ERROR: no trpts folder !"
    echo ""
    exit
 fi
@@ -61,7 +89,7 @@ fi
 if [[ -z "$SRindex" ]]; then
    echo ""
    echo "Usage:"
-   echo "./NCLcomparator.sh -gtf [annotation gtf file] -thread [number of thread] -index [STAR_RSEM_index folder] -read1 [read1 fastq.gz file] -read2 [read2 fastq.gz file]  -intra [circular results folder] -inter [fusion results folder] -sce [sce bed file] -o [ output Name] "
+   echo "./NCLcomparator.sh -gtf [annotation gtf file] -genome [genome annotation] -trpts [transcripts folder] -thread [number of thread] -index [STAR_RSEM_index folder] -read1 [read1 fastq.gz file] -read2 [read2 fastq.gz file]  -intra [circular results folder] -inter [fusion results folder] -sce [sce bed file] -o [ output Name] "
    echo ""
    echo "ERROR: no STAR_RSEM_index folder !"
    echo ""
@@ -73,7 +101,7 @@ if [[ -z "$read1" ]]; then
    echo "Usage:"
    echo "./NCLcomparator.sh -gtf [annotation gtf file] -thread [number of thread] -index [STAR_RSEM_index folder] -read1 [read1 fastq.gz file] -read2 [read2 fastq.gz file]  -intra [circular results folder] -inter [fusion results folder] -sce [sce bed file] -o [ output Name] "
    echo ""
-   echo "ERROR: no read1 file !"
+   echo "ERROR: no read1 fastq.gz file !"
    echo ""
    exit
 fi
@@ -81,9 +109,9 @@ fi
 if [[ -z "$read2" ]]; then
    echo ""
    echo "Usage:"
-   echo "./NCLcomparator.sh -gtf [annotation gtf file] -thread [number of thread] -index [STAR_RSEM_index folder] -read1 [read1 fastq.gz file] -read2 [read2 fastq.gz file]  -intra [circular results folder] -inter [fusion results folder] -sce [sce bed file] -o [ output Name] "
+   echo "./NCLcomparator.sh -gtf [annotation gtf file] -genome [genome annotation] -trpts [transcripts folder] -thread [number of thread] -index [STAR_RSEM_index folder] -read1 [read1 fastq.gz file] -read2 [read2 fastq.gz file]  -intra [circular results folder] -inter [fusion results folder] -sce [sce bed file] -o [ output Name] "  
    echo ""
-   echo "ERROR: no read2 file !"
+   echo "ERROR: no read2 fastq.gz file !"
    echo ""
    exit
 fi
@@ -107,7 +135,7 @@ STAR --chimSegmentMin 10 --runThreadN $Thread --genomeDir $SRindex --readFilesIn
 rm -r -f Aligned.out.bam
 rsem-calculate-expression -p $Thread --paired-end --bam Aligned.toTranscriptome.out.bam $SRindex\/RSEM RSEMout
 echo ""
-date "+%d/%m/%y %H:%M:%S ...... started NCLcomparator analysis!"
+date "+%d/%m/%y %H:%M:%S ...... begining NCLcomparator analysis!"
 
 totalRead=$(cat $BASEDIR1\/$OPN\/STAR_RSEM_out\/Log.final.out | grep 'Number of input reads' | awk '{print $6}')
 UMRead=$(cat $BASEDIR1\/$OPN\/STAR_RSEM_out\/Log.final.out | grep 'Uniquely mapped reads number'| awk '{print $6}')
@@ -202,11 +230,24 @@ if [[ -n "$CIRCULAR" ]]; then
 
     cat all.circEB.tmp  | sed 's/:/\t/g' | tr ' ' \\t > $BASEDIR1\/$OPN\/comparison\/intraMerged.out
     cat <(echo $header) $BASEDIR1\/$OPN\/comparison\/intraMerged.out > intraMerged.result
+    
     echo "Step: to graph intraMerged.result"
+    # run graphic_intra.R
+    # output file : intra.pdf and intraMerged_junction.result
     $BASEDIR\/bin\/graphic_intra.R intraMerged.result intra
     rm -r -f *.tmp
     rm -r -f all.circEB
     rm -r -f sampleintra
+    
+    echo ""
+    date "+%d/%m/%y %H:%M:%S ...... checking intra ambiguous alignment"
+    # run ambiguous alignment: checkAA.sh
+    # output file: AA_intraMerged_junction.result
+    mkdir $BASEDIR1\/$OPN\/checkAA_intra_out
+    mv $BASEDIR1\/$OPN\/intraMerged_junction.result $BASEDIR1\/$OPN\/checkAA_intra_out
+    cd $BASEDIR1\/$OPN\/checkAA_intra_out
+    $BASEDIR\/bin\/checkAA.sh -NCLevents intraMerged_junction.result -thread $Thread -genome $genome -trpts $trpts -tools $BASEDIR\/bin
+    mv AA_intraMerged_junction.result $BASEDIR1\/$OPN
    
    cd $BASEDIR1\/$OPN\/comparison
    cat intraMerged.out | awk '{print $7 "\t" $1 ":" $2 ":" $3 ":" $4 ":" $5 ":" $6 }' | sort -k1,1 > intraMerged.tmp1
@@ -307,7 +348,7 @@ if [[ -n "$FUSION" ]]; then
 
     cd $BASEDIR1\/$OPN\/comparison
     ## inter results ##
-    echo "Step: adjust the junction coordinates of inter results into exon boundaries"
+    echo "Step: to adjust the junction coordinates of inter results into exon boundaries"
     ls $FUSION > sampleinter.tmp 
     sampleinter_num=$(cat sampleinter.tmp | wc -l)
     for i in $(seq 1 "$sampleinter_num")
@@ -352,12 +393,27 @@ if [[ -n "$FUSION" ]]; then
     
     cat all.fusionEB.tmp  | sed 's/:/\t/g' | tr ' ' \\t > $BASEDIR1\/$OPN\/comparison\/interMerged.out
     cat <(echo $header) $BASEDIR1\/$OPN\/comparison\/interMerged.out > interMerged.result
+    
     echo "Step: to graph interMerged.result"
+    # run graphic_intra.R
+    # output file : intra.pdf and intraMerged_junction.result
     $BASEDIR\/bin\/graphic_inter.R interMerged.result inter
     rm -r -f *.tmp
     rm -r -f all.fusionEB
     rm -r -f sampleinter
-    
+     
+    echo ""
+    date "+%d/%m/%y %H:%M:%S ...... checking inter ambiguous alignment"
+    # run ambiguous alignment: checkAA.sh
+    # output file: AA_interMerged_junction.result
+    mkdir $BASEDIR1\/$OPN\/checkAA_inter_out
+    mv $BASEDIR1\/$OPN\/interMerged_junction.result $BASEDIR1\/$OPN\/checkAA_inter_out
+    cd $BASEDIR1\/$OPN\/checkAA_inter_out
+    $BASEDIR\/bin\/checkAA.sh -NCLevents interMerged_junction.result -thread $Thread -genome $genome -trpts $trpts -tools $BASEDIR\/bin
+    mv AA_interMerged_junction.result $BASEDIR1\/$OPN
+   
+
+
     cd $BASEDIR1\/$OPN\/comparison
     cat interMerged.out | awk '{print $7 "\t" $1":"$2":"$3":"$4":"$5":"$6":"$7":"$8 }' | sort -k1,1 | uniq > interMerged.tmp1
     echo "Step: to add  TPM and FPKM of its host gene"
@@ -428,6 +484,7 @@ if [[ -n "$FUSION" ]]; then
   cat Header.tmp2 interMerged.tmp6 > $BASEDIR1\/$OPN\/interMerged_characteristic.result
 
 fi
+
 
 cd $BASEDIR1\/$OPN\/comparison
 rm  -r -f *tmp*        
