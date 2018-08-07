@@ -17,7 +17,7 @@ $ chmod +x bin/*
 ```
 ### 3. Installation external tools
    (1) bedtools (http://bedtools.readthedocs.io/en/latest/) \
-   Bedtools was applied to manipulate genomic interval data in BED format, for example to intersect, group, and count genomic intervals. To get latest bedtools source from releases and install it. 
+   Bedtools was applied to manipulating genomic interval data in BED format, for example to intersect, group, and count genomic intervals. To get latest bedtools source from releases and install it. 
 ```sh
 $ wget https://github.com/arq5x/bedtools2/releases/download/v2.25.0/bedtools2.25.0.tar.gz
 $ tar -zxvf bedtools-2.25.0.tar.gz
@@ -27,14 +27,14 @@ $ sudo cp ./bin/ /usr/local/bin
 ```
    
    (2) BLAT (http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/blat/) \
-       BLAT was applied to identify false positive NCL events caused by ambiguous alignment originating from repetitive sequences or paralog genes. To get executable BLAT prgram.
+       BLAT was applied to identifying false positive NCL events caused by ambiguous alignment originating from repetitive sequences or paralog genes. To get executable BLAT prgram.
 ```sh
 $ wget http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/blat/blat
 $ sudo cp blat /usr/local/bin
 ```
        
    (3) STAR (https://github.com/alexdobin/STAR) \
-       STAR was applied to align RNA-seq reads aganist reference genome for retrieving total number of mapped reads and the reads spanning NCL junctions. To Get latest STAR source from releases and install it. 
+       STAR was applied to aligning RNA-seq reads aganist reference genome for retrieving total number of mapped reads and the reads spanning NCL junctions. To Get latest STAR source from releases and install it. 
 ```sh
 $ wget https://github.com/alexdobin/STAR/archive/2.5.3a.tar.gz
 $ tar -xzf 2.5.3a.tar.gz
@@ -43,7 +43,7 @@ $ sudo cp bin/Linux_x86_64_static/STAR /usr/local/bin
 ```
        
    (4) RSEM (https://github.com/deweylab/RSEM) \
-       RSEM was applied to calculation of the expression of  NCL events’ corresponding co-linear host genes (TPM and FPKM). To get latest RSEM source code and install it
+       RSEM was applied to calculating the expression of  NCL events’ corresponding co-linear host genes (TPM and FPKM). To get latest RSEM source code and install it
 ```sh
 $ wget https://github.com/deweylab/RSEM/archive/v1.3.0.tar.gz
 $ tar -xzf v1.3.0.tar.gz
