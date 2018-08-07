@@ -17,7 +17,7 @@ $ chmod +x bin/*
 ```
 ### 3. Installation external tools
    (1) bedtools (http://bedtools.readthedocs.io/en/latest/) \
-   Bedtools was applied to manipulate genomic coordinate data (BED file). To get latest bedtools source from releases and install it. 
+   Bedtools was applied to manipulate genomic interval data in BED format, for example to intersect, group, and count genomic intervals. To get latest bedtools source from releases and install it. 
 ```sh
 $ wget https://github.com/arq5x/bedtools2/releases/download/v2.25.0/bedtools2.25.0.tar.gz
 $ tar -zxvf bedtools-2.25.0.tar.gz
@@ -43,7 +43,7 @@ $ sudo cp bin/Linux_x86_64_static/STAR /usr/local/bin
 ```
        
    (4) RSEM (https://github.com/deweylab/RSEM) \
-       RSEM was applied to calculate the expression of  NCL events’ corresponding co-linear host genes (TPM and FPKM). To get latest RSEM source code and install it
+       RSEM was applied to calculation of the expression of  NCL events’ corresponding co-linear host genes (TPM and FPKM). To get latest RSEM source code and install it
 ```sh
 $ wget https://github.com/deweylab/RSEM/archive/v1.3.0.tar.gz
 $ tar -xzf v1.3.0.tar.gz
@@ -54,7 +54,7 @@ $ make install
 ```
        
    (5) R (https://www.r-project.org/) \
-       R was applied to graph the coverage of identified NCL events among the compared tools. To get R in Ubuntu environment
+       R was applied to preparation of statistical diagrams for comparisons of the results from different tools. To get R in Ubuntu environment
 ```sh
 $ sudo apt-get update
 $ sudo apt-get install r-base
