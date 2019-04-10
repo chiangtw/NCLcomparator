@@ -163,14 +163,14 @@ else
     cat exons_boundary.tmp1 exons_boundary.tmp2 | sort -k1,1 -k2,2n | uniq  > exons_boundary.bed
 fi
 
-cat $geneGTF | awk '{for(i=1;i<=NF;i++) if($i=="gene_name"){print  $(i+1) "\t" $0} }'  | awk '{for(i=1;i<=NF;i++) if($i=="gene_id") {print $(i+1) "\t" $0}}' | awk '{print $1 "\t" $2}' | sed 's/;//g' | sed 's/"//g' | sort  | uniq > ENSG_GeneID_convert.txt
-cat $geneGTF | awk '{for(i=1;i<=NF;i++) if($i=="exon_number") {print $(i+1) "\t" $0} }'| awk '{for(i=1;i<=NF;i++) if($i=="gene_name"){print  $(i+1) "\t" $0} }' | awk '{print $1 "\t" $2}' | sed 's/;//g' | sed 's/"//g'| sort -k1 -rnk2 | awk '!x[$1]++' | sort -k1,1 > GeneID_exonNum.txt
+cat $geneGTF | awk '{for(i=1;i<=NF;i++) if($i=="gene_name"){print  $(i+1) "\t" $0} }'  | awk '{for(i=1;i<=NF;i++) if($i=="gene_id") {print $(i+1) "\t" $0}}' | awk '{print $1 "\t" $2}' | sed 's/;//g' | sed 's/"//g' | sort -k1,1 | uniq > ENSG_GeneID_convert.txt
+cat $geneGTF | awk '{for(i=1;i<=NF;i++) if($i=="exon_number") {print $(i+1) "\t" $0} }'| awk '{for(i=1;i<=NF;i++) if($i=="gene_name"){print  $(i+1) "\t" $0} }' | awk '{print $1 "\t" $2}' | sed 's/;//g' | sed 's/"//g'| sort -k1,1 -k2,2nr | awk '!x[$1]++' | sort -k1,1 > GeneID_exonNum.txt
 
  
 cat $BASEDIR1\/$OPN\/STAR_RSEM_out\/RSEMout.genes.results | awk '{print $1 "\t" $6 "\t" $7}' | sed -e '1d' > genes_RSEM.txt
 join ENSG_GeneID_convert.txt genes_RSEM.txt > ENSG_GeneID_RSEM.txt  
 ## ENSG versus GeneID is multiple to one, choose choose large FPKM as represent of GeneID ## 
-cat ENSG_GeneID_RSEM.txt | awk '{print $2 "\t" $3 "\t" $4}' |  sort -rnk2 | awk '!x[$1]++' | sort -k1,1 > ENSG_GeneID_RSEM.txt.tmp 
+cat ENSG_GeneID_RSEM.txt | awk '{print $2 "\t" $3 "\t" $4}' |  sort -k2,2nr | awk '!x[$1]++' | sort -k1,1 > ENSG_GeneID_RSEM.txt.tmp 
  
 
 if [[ -n "$CIRCULAR" ]]; then
@@ -209,7 +209,7 @@ if [[ -n "$CIRCULAR" ]]; then
 
 
     cat comparison\/intra\/*.circEB | sort -k1,1 -k2,2n | uniq  > all.circEB
-    cat all.circEB | awk '{print $1":"$2":"$3":"$4":"$5":"$6 "\t" $8}' | sort -k1 | uniq > all.circEB.tmp 
+    cat all.circEB | awk '{print $1":"$2":"$3":"$4":"$5":"$6 "\t" $8}' | sort -k1,1 | uniq > all.circEB.tmp 
 
     ls comparison\/intra > sampleintra 
     sampleintra_num=$(cat sampleintra | wc -l)
@@ -223,8 +223,8 @@ if [[ -n "$CIRCULAR" ]]; then
        echo $i"." $getOne
        getOneName=$(echo $getOne | sed 's/[.]/\t/g' | awk '{print $1}')
        header=$(echo $header "\t" $getOneName)
-       cat comparison\/intra\/$getOne | awk '{print $1":"$2":"$3":"$4":"$5":"$6 "\t" $7}' | sort -k1 > $getOneName.circEB.tmp
-       join -o 1.1 1.2 2.2 all.circEB.tmp  $getOneName.circEB.tmp -a1 -e0 | awk '{print $1 "\t" $2":"$3}' | sort -k1 | uniq > all.circEB_2.tmp
+       cat comparison\/intra\/$getOne | awk '{print $1":"$2":"$3":"$4":"$5":"$6 "\t" $7}' | sort -k1,1 > $getOneName.circEB.tmp
+       join -o 1.1 1.2 2.2 all.circEB.tmp  $getOneName.circEB.tmp -a1 -e0 | awk '{print $1 "\t" $2":"$3}' | sort -k1,1 | uniq > all.circEB_2.tmp
        cat all.circEB_2.tmp > all.circEB.tmp
     done
 
@@ -253,10 +253,10 @@ if [[ -n "$CIRCULAR" ]]; then
    cat intraMerged.out | awk '{print $7 "\t" $1 ":" $2 ":" $3 ":" $4 ":" $5 ":" $6 }' | sort -k1,1 > intraMerged.tmp1
    echo "Step: to add the exon number of its host gene"
    ## to add exon number ## 
-   join -o 1.1 1.2 2.2 intraMerged.tmp1 GeneID_exonNum.txt -a1 -e nd  | sort | uniq | tr ' ' \\t  > intraMerged.tmp.exonNum
+   join -o 1.1 1.2 2.2 intraMerged.tmp1 GeneID_exonNum.txt -a1 -e nd  | sort -k1,1 | uniq | tr ' ' \\t  > intraMerged.tmp.exonNum
    echo "Step: to add  TPM and FPKM of its host gene"
    ## to add TPM and FPKM ##
-   join -o 1.1 1.2 2.2 2.3 intraMerged.tmp1 ENSG_GeneID_RSEM.txt.tmp -a1 -e nd | sort | uniq | tr ' ' \\t  > intraMerged.tmp.TPM_FPKM
+   join -o 1.1 1.2 2.2 2.3 intraMerged.tmp1 ENSG_GeneID_RSEM.txt.tmp -a1 -e nd | sort -k1,1 | uniq | tr ' ' \\t  > intraMerged.tmp.TPM_FPKM
    
    
    echo "Step: to calculate SJpj using CalSJpj.sh"
@@ -273,7 +273,7 @@ if [[ -n "$CIRCULAR" ]]; then
    join -o 1.1 1.2 1.3 2.3 2.4 intraMerged.tmp.exonNum intraMerged.tmp.TPM_FPKM -a1 -e nd | sort | uniq | tr ' ' \\t | awk '{print $2 "\t" $1 "\t" $3 "\t" $4 "\t" $5}' | tr ':' \\t > intraMerged.tmp2
    paste <(cat intraMerged.tmp2 | awk '{print $1"_"$2}') <(cat intraMerged.tmp2 | tr '\t' ':') | sort -k1,1  > intraMerged.tmp3.1
    join -o 1.2 2.2 intraMerged.tmp3.1 SJ_exon.count -a1 -e nd | tr ' ' \\t | tr ':' \\t | sort | uniq > intraMerged.tmp3.2
-   paste <(cat intraMerged.tmp3.2 | awk '{print $4"_"$5}') <(cat intraMerged.tmp3.2 | tr '\t' ':') | sort | uniq > intraMerged.tmp3.3  
+   paste <(cat intraMerged.tmp3.2 | awk '{print $4"_"$5}') <(cat intraMerged.tmp3.2 | tr '\t' ':') | sort -k1,1 | uniq > intraMerged.tmp3.3  
    join -o 1.2 2.2 intraMerged.tmp3.3 SJ_exon.count -a1 -e nd | tr ' ' \\t | tr ':' \\t | sort  | uniq > intraMerged.tmp3
    
    cat intra_SJ_pj.txt | awk '{print $1"_"$2 "\t" $4}' | sort | uniq > intra_SJ_pj.tmp1
@@ -373,7 +373,7 @@ if [[ -n "$FUSION" ]]; then
     cd  $BASEDIR1\/$OPN
     
     cat comparison/inter/*.fusionEB | sort -k1,1 -k2,2n | uniq  > all.fusionEB
-    cat all.fusionEB | awk '{print $1":"$2":"$3":"$4":"$5":"$6 "\t" $8":"$9}' | sort -k1 | uniq > all.fusionEB.tmp 
+    cat all.fusionEB | awk '{print $1":"$2":"$3":"$4":"$5":"$6 "\t" $8":"$9}' | sort -k1,1 | uniq > all.fusionEB.tmp 
     
     ls comparison/inter > sampleinter 
     sampleinter_num=$(cat sampleinter | wc -l)
@@ -386,8 +386,8 @@ if [[ -n "$FUSION" ]]; then
         echo $i"." $getOne
         getOneName=$(echo $getOne | sed 's/[.]/\t/g' | awk '{print $1}')
         header=$(echo $header "\t" $getOneName)
-        cat comparison/inter/$getOne | awk '{print $1":"$2":"$3":"$4":"$5":"$6 "\t" $7}' | sort -k1 > $getOneName.fusionEB.tmp
-        join -o 1.1 1.2 2.2 all.fusionEB.tmp  $getOneName.fusionEB.tmp -a1 -e0 | awk '{print $1 "\t" $2":"$3}' | sort -k1 | uniq > all.fusionEB_2.tmp
+        cat comparison/inter/$getOne | awk '{print $1":"$2":"$3":"$4":"$5":"$6 "\t" $7}' | sort -k1,1 > $getOneName.fusionEB.tmp
+        join -o 1.1 1.2 2.2 all.fusionEB.tmp  $getOneName.fusionEB.tmp -a1 -e0 | awk '{print $1 "\t" $2":"$3}' | sort -k1,1 | uniq > all.fusionEB_2.tmp
         cat all.fusionEB_2.tmp > all.fusionEB.tmp
     done
     
@@ -435,9 +435,9 @@ if [[ -n "$FUSION" ]]; then
     
     cat inter_SJ_pj.txt | awk '{print $1"_"$2 "\t" $4}' | sort | uniq > inter_SJ_pj.tmp1
     paste <(cat interMerged.tmp2 | awk '{print $1"_"$2"_"$7}') <(cat interMerged.tmp2 | tr '\t' ':') | sort -k1,1 > interMerged.tmp3.1 
-    join -o 1.2 2.2 interMerged.tmp3.1 inter_SJ_pj.tmp1 -a1 -e nd | sort -k1 -rnk2 | awk '!x[$1]++' | tr ' ' \\t | tr ':' \\t | sort | uniq > interMerged.tmp3.2
+    join -o 1.2 2.2 interMerged.tmp3.1 inter_SJ_pj.tmp1 -a1 -e nd | sort -k1,1 -k2,2nr | awk '!x[$1]++' | tr ' ' \\t | tr ':' \\t | sort | uniq > interMerged.tmp3.2
     paste <(cat interMerged.tmp3.2 | awk '{print $4"_"$5"_"$8}') <(cat interMerged.tmp3.2 | tr '\t' ':') | sort -k1,1 | uniq > interMerged.tmp3.3
-    join -o 1.2 2.2 interMerged.tmp3.3 inter_SJ_pj.tmp1 -a1 -e nd | sort -k1 -rnk2 | awk '!x[$1]++' | tr ' ' \\t | tr ':' \\t | sort | uniq > interMerged.tmp3
+    join -o 1.2 2.2 interMerged.tmp3.3 inter_SJ_pj.tmp1 -a1 -e nd | sort -k1,1 -k2,2nr | awk '!x[$1]++' | tr ' ' \\t | tr ':' \\t | sort | uniq > interMerged.tmp3
     paste <(cat interMerged.tmp3 | awk '{print $7}') <(cat interMerged.tmp3 | tr '\t' ':') | sort -k1,1 | uniq > interMerged.tmp4.1
     join -o 1.2 2.2 interMerged.tmp4.1 inter_gene_pmed.txt -a1 -e nd  | tr ' ' \\t | tr ':' \\t |  sort -k1,1 | uniq > interMerged.tmp4.2
     paste <(cat interMerged.tmp4.2 | awk '{print $8}') <(cat interMerged.tmp4.2 | tr '\t' ':') | sort -k1,1 | uniq > interMerged.tmp4.3
